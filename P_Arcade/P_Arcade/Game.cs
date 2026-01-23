@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace P_Arcade
 {
@@ -21,11 +18,28 @@ namespace P_Arcade
         /// </summary>
         public List<HighScore> HighScores { get; set; }
 
-        public Game(string name)
-        {
-            HighScores = new List<HighScore>();
+        /// <summary>
+        /// The active game's current score
+        /// </summary>
+        public int CurrentScore { get; private set; }
 
+        /// <summary>
+        /// Whether or not the current game supports high scores
+        /// </summary>
+        public bool SupportsHighscore { get; private set; }
+
+        public Game(string name, bool blnSupportsHighscore)
+        {
             Name = name;
+
+            SupportsHighscore = blnSupportsHighscore;
+
+            if (SupportsHighscore)
+            {
+                HighScores = Arcade.GetHighScoresFromFile(this);
+                Arcade.SetHighScoresToFile(this);
+                CurrentScore = 0;
+            }
         }
 
         /// <summary>
@@ -33,8 +47,13 @@ namespace P_Arcade
         /// </summary>
         public void Start()
         {
-            Console.WriteLine("Hello, World!");
-            Console.ReadLine();
+            Arcade.ShowTitle(Name);
+
+            if (SupportsHighscore)
+                CurrentScore = 0;
+
+            Console.WriteLine("   Hello, World!");
+            Console.ReadKey(true);
         }
     }
 }

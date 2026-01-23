@@ -45,7 +45,7 @@
   <ItemGroup>
     <Compile Include="Game.cs" />
     <Compile Include="HighScore.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="Arcade.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
