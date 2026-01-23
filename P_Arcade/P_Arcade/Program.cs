@@ -11,9 +11,15 @@ namespace P_Arcade
 {
     internal class Program
     {
+        static List<Game> AvailableGames;
+
         static void Main(string[] args)
         {
+            AvailableGames = new List<Game>();
+
+            // Initialize games
             Game test = new Game("Bob123");
+            AvailableGames.Add(test);
 
             test.Start();
 
@@ -29,9 +35,11 @@ namespace P_Arcade
         /// </summary>
         /// <param name="game"></param>
         /// <param name="rows"></param>
-        static void DisplayHighestScores(Game game, int Rows)
+        static void DisplayHighestScores(Game game, int rows)
         {
-            foreach (HighScore score in game.HighScores)
+            Console.WriteLine("\n" + game.Name + "'s highest scores: ");
+
+            foreach (HighScore score in game.HighScores.OrderByDescending(score => score.Score).Take(rows))
             {
                 Console.WriteLine(score.Score + "\t" + score.Initials);
             }
