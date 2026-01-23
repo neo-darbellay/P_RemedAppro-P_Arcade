@@ -21,12 +21,12 @@ namespace P_Arcade
         /// <summary>
         /// The active game's current score
         /// </summary>
-        public int CurrentScore { get; private set; }
+        public int CurrentScore { get; protected set; }
 
         /// <summary>
         /// Whether or not the current game supports high scores
         /// </summary>
-        public bool SupportsHighscore { get; private set; }
+        public bool SupportsHighscore { get; protected set; }
 
         public Game(string name, bool blnSupportsHighscore)
         {
@@ -45,7 +45,7 @@ namespace P_Arcade
         /// <summary>
         /// Starts the game logic
         /// </summary>
-        public void Start()
+        public virtual void Start()
         {
             Arcade.ShowTitle(Name);
 

@@ -15,8 +15,7 @@ namespace P_Arcade
             AvailableGames = new List<Game>();
 
             // Initialize games
-            Game test = new Game("SuperBob123", true);
-            AvailableGames.Add(test);
+            AvailableGames.Add(new Connect4());
 
             // Set up their scores and a GameNames table
             List<string> GameNames = new List<string>();
