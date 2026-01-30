@@ -13,8 +13,10 @@ namespace P_Arcade
         public Snake() : base("Snake", false) { }
 
         // Constants used for min/max of length/width
-        const byte VAL_MIN_SIZE = 0;
-        const byte VAL_MAX_SIZE = 25;
+        const byte VAL_MIN_LENGTH = 6 * 2;
+        const byte VAL_MIN_WIDTH = 6 * 3;
+        const byte VAL_MAX_LENGTH = 25 * 2;
+        const byte VAL_MAX_WIDTH = 25 * 3;
 
         // User input for length and width
         static byte bytLength = 0;
@@ -102,34 +104,34 @@ namespace P_Arcade
             Console.Write("   Please enter the length of the area that you want.\n   The value needs to be greater than ");
 
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write(VAL_MIN_SIZE);
+            Console.Write(VAL_MIN_LENGTH);
             Console.ResetColor();
 
             Console.Write(" and smaller than ");
 
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(VAL_MAX_SIZE);
+            Console.WriteLine(VAL_MAX_LENGTH);
             Console.ResetColor();
 
             // Get the correct input
-            GetInputInBounds(out bytLength, VAL_MIN_SIZE, VAL_MAX_SIZE);
+            GetInputInBounds(out bytLength, VAL_MIN_LENGTH, VAL_MAX_LENGTH);
 
 
             // Ask the user for the number of columns they want
             Console.Write("\n   Please enter the width of the area that you want.\n   The value needs to be greater than ");
 
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write(VAL_MIN_SIZE);
+            Console.Write(VAL_MIN_WIDTH);
             Console.ResetColor();
 
             Console.Write(" and smaller than ");
 
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(VAL_MAX_SIZE);
+            Console.WriteLine(VAL_MAX_WIDTH);
             Console.ResetColor();
 
             // Get the correct input
-            GetInputInBounds(out bytWidth, VAL_MIN_SIZE, VAL_MAX_SIZE);
+            GetInputInBounds(out bytWidth, VAL_MIN_WIDTH, VAL_MAX_WIDTH);
         }
 
         /// <summary>
@@ -147,7 +149,7 @@ namespace P_Arcade
                 Console.Write("   Your input: ");
 
                 bool blnResult = byte.TryParse(Console.ReadLine(), out bytAnswer);
-                bool blnResultInBound = blnResult && (bytAnswer > MIN_VALUE) && (bytAnswer < MAX_VALUE);
+                bool blnResultInBound = blnResult && (bytAnswer >= MIN_VALUE) && (bytAnswer <= MAX_VALUE);
 
                 // Check if the value is correct
                 if (blnResultInBound)
