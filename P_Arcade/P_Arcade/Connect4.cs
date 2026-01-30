@@ -9,6 +9,11 @@ namespace P_Arcade
     internal class Connect4 : Game
     {
         /// <summary>
+        /// The Connect 4 game's constructor
+        /// </summary>
+        public Connect4() : base("Connect 4", false) { }
+
+        /// <summary>
         /// The current player
         /// </summary>
         static byte bytPlayer = 1;
@@ -38,19 +43,17 @@ namespace P_Arcade
         /// </summary>
         static byte bytBotSmartness = 1;
 
-        // The game piece's X and Y position
+        // The game piece's X position
         static byte bytCursorPosX = 0;
-        const byte CURSOR_POS_Y = 6;
+
+        // The first tile's X and Y position
+        const byte FIRST_TILE_X = 5;
+        const byte FIRST_TILE_Y = 6;
 
         /// <summary>
         /// A counter used to keep track of how many pieces have been placed during the game
         /// </summary>
         static byte bytCounter = 0;
-
-        /// <summary>
-        /// The Connect 4 game's constructor
-        /// </summary>
-        public Connect4() : base("Connect 4", false) { }
 
         /// <summary>
         /// Small fix for windows 11's terminal
@@ -187,7 +190,7 @@ namespace P_Arcade
 
             // Display the navigation grid (where the game piece moves before dropping)
             {
-                // Initialize the last row with 5, as that's the number of free space the
+                // Initialize the last row with 5, as that's the number of free space the title gives us
                 bytLastRow = 5;
 
                 // (1/3)
@@ -381,7 +384,7 @@ namespace P_Arcade
             byte[,] GameGrid = new byte[bytRow, bytColumn];
 
             // Put the cursor inside of the navigation grid
-            Console.SetCursorPosition(5, CURSOR_POS_Y);
+            Console.SetCursorPosition(FIRST_TILE_X, FIRST_TILE_Y);
             Console.CursorVisible = false;
 
             // Reset variables used for the game
@@ -423,21 +426,21 @@ namespace P_Arcade
                             if (bytCursorPosX > 0)
                             {
                                 // Erase previous piece
-                                Console.SetCursorPosition(5 + bytCursorPosX * 4, CURSOR_POS_Y);
+                                Console.SetCursorPosition(FIRST_TILE_X + bytCursorPosX * 4, FIRST_TILE_Y);
                                 Console.Write("  ");
 
                                 // Add new piece to the left
                                 bytCursorPosX--;
-                                Console.SetCursorPosition(5 + bytCursorPosX * 4, CURSOR_POS_Y);
+                                Console.SetCursorPosition(FIRST_TILE_X + bytCursorPosX * 4, FIRST_TILE_Y);
                                 Console.Write("█");
                             }
                             else
                             {
                                 // Move the piece all the way to the right
-                                Console.SetCursorPosition(5 + bytCursorPosX * 4, CURSOR_POS_Y);
+                                Console.SetCursorPosition(FIRST_TILE_X + bytCursorPosX * 4, FIRST_TILE_Y);
                                 Console.Write("  ");
                                 bytCursorPosX = (byte)(bytColumn - 1);
-                                Console.SetCursorPosition(5 + bytCursorPosX * 4, CURSOR_POS_Y);
+                                Console.SetCursorPosition(FIRST_TILE_X + bytCursorPosX * 4, FIRST_TILE_Y);
                                 Console.Write("█");
                             }
                             break;
@@ -448,21 +451,21 @@ namespace P_Arcade
                             if (bytCursorPosX < bytColumn - 1)
                             {
                                 // Erase previous piece
-                                Console.SetCursorPosition(5 + bytCursorPosX * 4, CURSOR_POS_Y);
+                                Console.SetCursorPosition(FIRST_TILE_X + bytCursorPosX * 4, FIRST_TILE_Y);
                                 Console.Write("  ");
 
                                 // Add new piece to the right
                                 bytCursorPosX++;
-                                Console.SetCursorPosition(5 + bytCursorPosX * 4, CURSOR_POS_Y);
+                                Console.SetCursorPosition(FIRST_TILE_X + bytCursorPosX * 4, FIRST_TILE_Y);
                                 Console.Write("█");
                             }
                             else
                             {
                                 // Move the piece all the way to the left
-                                Console.SetCursorPosition(5 + bytCursorPosX * 4, CURSOR_POS_Y);
+                                Console.SetCursorPosition(FIRST_TILE_X + bytCursorPosX * 4, FIRST_TILE_Y);
                                 Console.Write("  ");
                                 bytCursorPosX = 0;
-                                Console.SetCursorPosition(5 + bytCursorPosX * 4, CURSOR_POS_Y);
+                                Console.SetCursorPosition(FIRST_TILE_X + bytCursorPosX * 4, FIRST_TILE_Y);
                                 Console.Write("█");
                             }
                             break;
@@ -478,7 +481,7 @@ namespace P_Arcade
                                 if (GameGrid[i, bytCursorPosX] == 0)
                                 {
                                     GameGrid[i, bytCursorPosX] = bytPlayer;
-                                    Console.SetCursorPosition(5 + bytCursorPosX * 4, 10 + (i * 2));
+                                    Console.SetCursorPosition(FIRST_TILE_X + bytCursorPosX * 4, 10 + (i * 2));
                                     Console.Write("█");
 
                                     blnPiecePlaced = true;
@@ -531,7 +534,7 @@ namespace P_Arcade
 
                         // Update the piece's color
                         Console.ForegroundColor = (bytPlayer == 1 ? ConsoleColor.Red : blnTwoPlayers ? ConsoleColor.Yellow : ConsoleColor.Cyan);
-                        Console.SetCursorPosition(5 + bytCursorPosX * 4, 6);
+                        Console.SetCursorPosition(FIRST_TILE_X + bytCursorPosX * 4, FIRST_TILE_Y);
                         Console.Write("█");
                     }
                 }
