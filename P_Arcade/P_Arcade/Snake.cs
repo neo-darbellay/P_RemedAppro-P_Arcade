@@ -22,9 +22,12 @@ namespace P_Arcade
         static byte bytLength = 0;
         static byte bytWidth = 0;
 
-        // The game piece's X and Y position
-        static byte bytCursorPosX = 0;
-        static byte bytCursorPosY = 0;
+        // The current snake's size
+        static byte bytSnakeSize = 1;
+
+        // The current snake's position
+        static byte bytSnakeX = 0;
+        static byte bytSnakeY = 0;
 
         // The first tile's X and Y position
         const byte FIRST_TILE_X = 4;
@@ -89,6 +92,14 @@ namespace P_Arcade
 
             // Create the game grid
             byte[,] GameGrid = new byte[bytLength, bytWidth];
+
+            // Create the player and put him in the middle
+            bytSnakeX = (byte)(GameGrid.Length / 2);
+            bytSnakeY = bytSnakeX;
+
+            GameGrid[bytSnakeX, bytSnakeY] = 1;
+
+            DrawTile(bytSnakeX, bytSnakeY, '@', ConsoleColor.Black, false);
 
             Console.ReadKey(true);
         }
