@@ -12,17 +12,19 @@ namespace P_Arcade
 
         static void Main(string[] args)
         {
-            AvailableGames = new List<Game>();
-
-            // Initialize games
-            AvailableGames.Add(new Connect4());
+            AvailableGames = new List<Game>
+            {
+                // Initialize games
+                new Connect4(),
+                new Snake()
+            };
 
             // Set up their scores and a GameNames table
             List<string> GameNames = new List<string>();
 
             foreach (Game game in AvailableGames)
             {
-                GameNames.Add(game.Name);
+                GameNames.Add((AvailableGames.IndexOf(game) + 1) + ". " + game.Name);
 
                 if (!game.SupportsHighscore) continue;
             }
@@ -103,19 +105,19 @@ namespace P_Arcade
 
             Console.WriteLine("   " + strSubTitle);
             for (int i = 0; i < lst_strChoices.Count; i++)
-                Console.WriteLine("\t   " + lst_strChoices[i]);
+                Console.WriteLine("      " + lst_strChoices[i]);
 
             do
             {
                 // Points the current choice with an arrow
-                Console.SetCursorPosition(8, intTopLine + userChoice);
+                Console.SetCursorPosition(3, intTopLine + userChoice);
                 Console.Write("->");
 
                 // Waits for the user to press a key
                 userKey = Console.ReadKey(true);
 
                 // Deletes the previous arrow
-                Console.SetCursorPosition(8, intTopLine + userChoice);
+                Console.SetCursorPosition(3, intTopLine + userChoice);
                 Console.Write("  ");
 
                 if (userKey.Key == ConsoleKey.DownArrow)
@@ -134,7 +136,7 @@ namespace P_Arcade
                 }
                 else if (char.IsDigit(userKey.KeyChar))
                     return userKey.KeyChar - '0';
-            } while (userKey.Key != ConsoleKey.Enter);
+            } while (userKey.Key != ConsoleKey.Enter && userKey.Key != ConsoleKey.Spacebar);
             return userChoice;
         }
 
