@@ -79,7 +79,7 @@ namespace P_Arcade
             Arcade.ShowTitle(Name);
 
             // Ask the user for the number of rows they want
-            Console.Write("   Please enter the number of rows you want.\nThe value needs to be greater than");
+            Console.Write("   Please enter the number of rows you want.\n   The value needs to be greater than ");
 
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write(VAL_MIN_ROWS);
@@ -96,7 +96,7 @@ namespace P_Arcade
 
 
             // Ask the user for the number of columns they want
-            Console.Write("\n   Please enter the number of columns you want.\nThe value needs to be greater than ");
+            Console.Write("\n   Please enter the number of columns you want.\n   The value needs to be greater than ");
 
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write(VAL_MIN_COLUMNS);
@@ -221,7 +221,7 @@ namespace P_Arcade
                 bytLastRow++;
 
                 // Space used to for the user guide
-                Console.Write("\n   ");
+                Console.Write("\n    ");
                 for (byte x = 1; x < bytColumn; x++)
                 {
                     Console.Write("    ");
@@ -235,7 +235,7 @@ namespace P_Arcade
 
             // First line of the grid
             {
-                Console.Write("\t╔");
+                Console.Write("   ╔");
                 for (byte x = 1; x < bytColumn; x++)
                 {
                     Console.Write("═══╦");
@@ -293,14 +293,7 @@ namespace P_Arcade
                     case 1:
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.Write("\t        Player 1: █");
-                        if (blnTwoPlayers)
-                        {
-                            Console.ForegroundColor = ConsoleColor.Yellow;
-                        }
-                        else
-                        {
-                            Console.ForegroundColor = ConsoleColor.Cyan;
-                        }
+                        Console.ForegroundColor = blnTwoPlayers ? ConsoleColor.Yellow : ConsoleColor.Cyan;
                         Console.Write("\tPlayer 2: █");
                         Console.ResetColor();
                         break;
@@ -388,7 +381,7 @@ namespace P_Arcade
             byte[,] GameGrid = new byte[bytRow, bytColumn];
 
             // Put the cursor inside of the navigation grid
-            Console.SetCursorPosition(10, 6);
+            Console.SetCursorPosition(5, CURSOR_POS_Y);
             Console.CursorVisible = false;
 
             // Reset variables used for the game
@@ -417,9 +410,12 @@ namespace P_Arcade
                         case ConsoleKey.Backspace:
                         case ConsoleKey.Escape:
                             Console.SetCursorPosition(0, bytLastRow);
-                            Console.Write("\n\n\n\n");
-                            Restart_Game();
-                            break;
+                            Console.Write("\n\n\n\n   ");
+
+                            Console.ResetColor();
+                            Console.WriteLine("   Press any key to continue.");
+                            Console.ReadKey(true);
+                            return;
 
                         case ConsoleKey.A:
                         case ConsoleKey.LeftArrow:
@@ -427,21 +423,21 @@ namespace P_Arcade
                             if (bytCursorPosX > 0)
                             {
                                 // Erase previous piece
-                                Console.SetCursorPosition(10 + bytCursorPosX * 4, CURSOR_POS_Y);
+                                Console.SetCursorPosition(5 + bytCursorPosX * 4, CURSOR_POS_Y);
                                 Console.Write("  ");
 
                                 // Add new piece to the left
                                 bytCursorPosX--;
-                                Console.SetCursorPosition(10 + bytCursorPosX * 4, CURSOR_POS_Y);
+                                Console.SetCursorPosition(5 + bytCursorPosX * 4, CURSOR_POS_Y);
                                 Console.Write("█");
                             }
                             else
                             {
                                 // Move the piece all the way to the right
-                                Console.SetCursorPosition(10 + bytCursorPosX * 4, CURSOR_POS_Y);
+                                Console.SetCursorPosition(5 + bytCursorPosX * 4, CURSOR_POS_Y);
                                 Console.Write("  ");
                                 bytCursorPosX = (byte)(bytColumn - 1);
-                                Console.SetCursorPosition(10 + bytCursorPosX * 4, CURSOR_POS_Y);
+                                Console.SetCursorPosition(5 + bytCursorPosX * 4, CURSOR_POS_Y);
                                 Console.Write("█");
                             }
                             break;
@@ -452,21 +448,21 @@ namespace P_Arcade
                             if (bytCursorPosX < bytColumn - 1)
                             {
                                 // Erase previous piece
-                                Console.SetCursorPosition(10 + bytCursorPosX * 4, CURSOR_POS_Y);
+                                Console.SetCursorPosition(5 + bytCursorPosX * 4, CURSOR_POS_Y);
                                 Console.Write("  ");
 
                                 // Add new piece to the right
                                 bytCursorPosX++;
-                                Console.SetCursorPosition(10 + bytCursorPosX * 4, CURSOR_POS_Y);
+                                Console.SetCursorPosition(5 + bytCursorPosX * 4, CURSOR_POS_Y);
                                 Console.Write("█");
                             }
                             else
                             {
                                 // Move the piece all the way to the left
-                                Console.SetCursorPosition(10 + bytCursorPosX * 4, CURSOR_POS_Y);
+                                Console.SetCursorPosition(5 + bytCursorPosX * 4, CURSOR_POS_Y);
                                 Console.Write("  ");
                                 bytCursorPosX = 0;
-                                Console.SetCursorPosition(10 + bytCursorPosX * 4, CURSOR_POS_Y);
+                                Console.SetCursorPosition(5 + bytCursorPosX * 4, CURSOR_POS_Y);
                                 Console.Write("█");
                             }
                             break;
@@ -482,7 +478,7 @@ namespace P_Arcade
                                 if (GameGrid[i, bytCursorPosX] == 0)
                                 {
                                     GameGrid[i, bytCursorPosX] = bytPlayer;
-                                    Console.SetCursorPosition(10 + bytCursorPosX * 4, 10 + (i * 2));
+                                    Console.SetCursorPosition(5 + bytCursorPosX * 4, 10 + (i * 2));
                                     Console.Write("█");
 
                                     blnPiecePlaced = true;
@@ -498,7 +494,7 @@ namespace P_Arcade
                     {
                         // Increment the piece counter
                         bytCounter++;
-                        if (Check_Victory(GameGrid, bytPlayer, bytRow, bytColumn))
+                        if (Check_Victory(GameGrid))
                         {
                             Console.SetCursorPosition(0, bytLastRow);
                             Console.Write("\n\n\n\n");
@@ -510,20 +506,24 @@ namespace P_Arcade
                             Console.Write("Player " + bytPlayer);
                             Console.ResetColor();
 
-                            Console.Write(" ! You have won in" + bytCounter + " turns!\n");
-                            Restart_Game();
-                            break;
+                            Console.Write(" ! You have won in " + bytCounter + " turns!\n");
+                            Console.ResetColor();
+                            Console.WriteLine("   Press any key to continue.");
+                            Console.ReadKey(true);
+                            return;
                         }
 
-                        if (Grid_Full(GameGrid, bytRow, bytColumn))
+                        if (Grid_Full(GameGrid))
                         {
                             Console.SetCursorPosition(0, bytLastRow);
                             Console.WriteLine("\n\n\n");
                             Console.ResetColor();
 
                             Console.Write("   It's a tie! The game grid is full.\n\n");
-                            Restart_Game();
-                            break;
+                            Console.ResetColor();
+                            Console.WriteLine("   Press any key to continue.");
+                            Console.ReadKey(true);
+                            return;
                         }
 
                         // Alternate between player 1 and 2
@@ -531,7 +531,7 @@ namespace P_Arcade
 
                         // Update the piece's color
                         Console.ForegroundColor = (bytPlayer == 1 ? ConsoleColor.Red : blnTwoPlayers ? ConsoleColor.Yellow : ConsoleColor.Cyan);
-                        Console.SetCursorPosition(10 + bytCursorPosX * 4, 6);
+                        Console.SetCursorPosition(5 + bytCursorPosX * 4, 6);
                         Console.Write("█");
                     }
                 }
@@ -549,7 +549,7 @@ namespace P_Arcade
         }
 
         /// <summary>
-        /// Get the user's input, and verify if it is in bound
+        /// Get the user's input, and verify that it is in bound
         /// </summary>
         /// <param name="bytAnswer">The variable that will get changed</param>
         /// <param name="MIN_VALUE">Minimal value</param>
@@ -576,7 +576,7 @@ namespace P_Arcade
                 }
                 else
                 {
-                    Console.Write("\n   Your value isn't a number, bplease retry.\n\n");
+                    Console.Write("\n   Your value isn't a number, please retry.\n\n");
                 }
 
                 Windows11TerminalFix();
@@ -586,208 +586,125 @@ namespace P_Arcade
         }
 
         /// <summary>
-        /// Méthode utilisée pour la vérification de la victoire d'un des deux joueurs
+        /// Check to see if either player has won
         /// </summary>
-        /// <param name="GameGrid">Le tableau bidirectionnel utilisé pour le fonctionnement du jeu</param>
-        /// <param name="bytPlayer">Nombre du joueur actuel (1 ou 2)</param>
-        /// <param name="bytAnswerLine">Nombre de lignes total</param>
-        /// <param name="bytAnswerColumn">Nombre de colonnes total</param>
-        /// <returns>Retourne true si un des deux joueurs ont gagné, sinon false</returns>
-        private bool Check_Victory(byte[,] GameGrid, byte bytPlayer, byte bytAnswerLine, byte bytAnswerColumn)
+        /// <param name="GameGrid">The bidirectionnal array that stores all the pieces</param>
+        /// <returns>Whether or not this player has won</returns>
+        private bool Check_Victory(byte[,] GameGrid)
         {
-            // Vérifie si la taille de la grille permet une victoire
-            if (bytAnswerLine < VAL_CONNECT || bytAnswerColumn < VAL_CONNECT)
+            // Check to see if the current grid size allows a victory
+            if (bytRow < 4 || bytColumn < 4)
                 return false;
 
 
 
-            /// Vérification horizontale ///
-
-            // Parcourir chaque ligne de la grille
-            for (byte bytLines = 0; bytLines < bytAnswerLine; bytLines++)
+            // Horizontal verification
+            for (byte bytLines = 0; bytLines < bytRow; bytLines++)
             {
-                // Vérifier chaque colonne et s'arrête à bytAnswerColumn - (VAL_CONNECT - 1) pour ne pas
-                // dépasser les limites du tableau en vérifiant les pions nécessaires
-                for (byte bytColumns = 0; bytColumns <= bytAnswerColumn - VAL_CONNECT; bytColumns++)
+                for (byte bytColumns = 0; bytColumns <= bytColumn - 4; bytColumns++)
                 {
-                    bool blnVictory = true; // Variable utilisée pour indiquer si les pions sont alignés horizontalement
+                    bool blnVictory = true;
 
-                    for (int x = 0; x < VAL_CONNECT; x++)
+                    for (int x = 0; x < 4; x++)
                     {
-                        // Si un pion ne correspond pas à celui du joueur actuel, l'alignement est interrompu
+                        // If a piece isn't the current player's, then that means the line has stopped
                         if (GameGrid[bytLines, bytColumns + x] != bytPlayer)
                         {
                             blnVictory = false;
                             break;
                         }
                     }
-                    // Si tous les pions nécessaires sont alignés, retourne le booléen true
+
                     if (blnVictory) return true;
                 }
             }
 
-            /// Vérification verticale ///
-
-            // Parcourir chaque colonne de la grille
-            for (byte bytColumns = 0; bytColumns < bytAnswerColumn; bytColumns++)
+            // Vertical verification
+            for (byte bytColumns = 0; bytColumns < bytColumn; bytColumns++)
             {
-                // Vérifier chaque ligne et s'arrête à bytAnswerLine - (VAL_CONNECT - 1) pour ne pas
-                // dépasser les limites du tableau en vérifiant les pions nécessaires
-                for (byte bytLines = 0; bytLines <= bytAnswerLine - VAL_CONNECT; bytLines++)
+                for (byte bytLines = 0; bytLines <= bytRow - 4; bytLines++)
                 {
-                    bool blnVictory = true; // Variable utilisée pour indiquer si les pions sont alignés verticalement
-                    for (int x = 0; x < VAL_CONNECT; x++)
+                    bool blnVictory = true;
+
+                    for (int x = 0; x < 4; x++)
                     {
-                        // Si un pion ne correspond pas à celui du joueur actuel, l'alignement est interrompu
+                        // If a piece isn't the current player's, then that means the line has stopped
                         if (GameGrid[bytLines + x, bytColumns] != bytPlayer)
                         {
                             blnVictory = false;
                             break;
                         }
                     }
-                    // Si tous les pions nécessaires sont alignés, retourne "true"
+
                     if (blnVictory) return true;
                 }
             }
 
-            /// Vérification diagonale ///
-
-            // Vérification de la diagonale haut-gauche à bas-droit
-            for (byte bytLines = 0; bytLines <= bytAnswerLine - VAL_CONNECT; bytLines++)
+            // Diagional verification (\)
+            for (byte bytLines = 0; bytLines <= bytRow - 4; bytLines++)
             {
-                // Vérifier chaque colonne et s'arrête à bytAnswerColumn - (VAL_CONNECT - 1) pour ne pas
-                // dépasser les limites du tableau en vérifiant les pions nécessaires
-                for (byte bytColumns = 0; bytColumns <= bytAnswerColumn - VAL_CONNECT; bytColumns++)
+                for (byte bytColumns = 0; bytColumns <= bytColumn - 4; bytColumns++)
                 {
-                    bool blnVictory = true; // Variable utilisée pour indiquer si les pions sont alignés diagonalement
+                    bool blnVictory = true;
 
-                    for (int x = 0; x < VAL_CONNECT; x++)
+                    for (int x = 0; x < 4; x++)
                     {
-                        // Si un pion ne correspond pas à celui du joueur actuel, l'alignement est interrompu
+                        // If a piece isn't the current player's, then that means the line has stopped
                         if (GameGrid[bytLines + x, bytColumns + x] != bytPlayer)
                         {
                             blnVictory = false;
                             break;
                         }
                     }
-                    // Si tous les pions nécessaires sont alignés, retourne "true"
+
                     if (blnVictory) return true;
                 }
             }
 
-            // Vérification de la diagonale haut-droite à bas-gauche
-            for (byte bytLines = 0; bytLines <= bytAnswerLine - VAL_CONNECT; bytLines++)
+            // Diagonal verification (/)
+            for (byte bytLines = 0; bytLines <= bytRow - 4; bytLines++)
             {
-                // Vérifier chaque colonne et s'arrête avant VAL_CONNECT pour éviter les erreurs
-                for (byte bytColumns = (byte)(VAL_CONNECT - 1); bytColumns < bytAnswerColumn; bytColumns++)
+                for (byte bytColumns = 3; bytColumns < bytColumn; bytColumns++)
                 {
-                    bool blnVictory = true; // Variable utilisée pour indiquer si les pions sont alignés diagonalement
+                    bool blnVictory = true;
 
-                    for (int x = 0; x < VAL_CONNECT; x++)
+                    for (int x = 0; x < 4; x++)
                     {
-                        // Si un pion ne correspond pas à celui du joueur actuel, l'alignement est interrompu
+                        // If a piece isn't the current player's, then that means the line has stopped
                         if (GameGrid[bytLines + x, bytColumns - x] != bytPlayer)
                         {
                             blnVictory = false;
                             break;
                         }
                     }
-                    // Si tous les pions nécessaires sont alignés, retourne "true"
+
                     if (blnVictory) return true;
                 }
             }
 
-            // Si aucune combinaison gagnante n'est trouvée, retourne "false"
             return false;
-
         }
 
         /// <summary>
-        /// Méthode utilisée pour verifier que la grile n'est pas remplie complêtement
+        /// Check to see whether or not the grid is full
         /// </summary>
-        /// <param name="GameGrid">Le tableau bidirectionnel utilisé pour le fonctionnement du jeu</param>
-        /// <param name="bytAnswerLine">Nombre de lignes total</param>
-        /// <param name="bytAnswerColumn">Nombre de colonnes total</param>
-        /// <returns>Retourne true si la grile du jeu est remplie</returns>
-        private bool Grid_Full(byte[,] GameGrid, byte bytAnswerLine, byte bytAnswerColumn)
+        /// <param name="GameGrid">The bidirectionnal array that stores all the pieces</param>
+        /// <returns>Whether or not the grid is full</returns>
+        private bool Grid_Full(byte[,] GameGrid)
         {
-            // Parcourt chaque ligne de la grille
-            for (byte bytLines = 0; bytLines < bytAnswerLine; bytLines++)
+            for (byte bytLines = 0; bytLines < bytRow; bytLines++)
             {
-                // Parcourt chaque colonne de la grille
-                for (byte bytColumns = 0; bytColumns < bytAnswerColumn; bytColumns++)
+                for (byte bytColumns = 0; bytColumns < bytColumn; bytColumns++)
                 {
-                    // Si une case est vide, cela signifie que la grille n'est pas pleine
+                    // Empty case = not full
                     if (GameGrid[bytLines, bytColumns] == 0)
                     {
                         return false;
                     }
                 }
             }
-            // Si aucune case vide n'est trouvée retourne true, (donc la grille est pleine)
+
             return true;
-
-        }
-
-        /// <summary>
-        /// Méthode utilisée pour recommencer le jeu
-        /// </summary>
-        private void Restart_Game()
-        {
-            // Affiche le message pour savoir si l'utilisateur veut recommencer (fin du programme)
-            Console.ResetColor();
-            Console.CursorVisible = true;
-
-            // Affichage de la question
-            Console.Write("\tVoulez-vous recommencer ? (o / n): ");
-
-            // Boucle do while qui permet de lire la réponse de l'utilisateur (pour recommencer le jeu)
-
-            blnVerification = false;
-
-            do
-            {
-                // Sauvegarde de la position du curseur avant la saisie
-                int intLeft = Console.CursorLeft;
-                int intTop = Console.CursorTop;
-
-                // Si l'utilisateur appuie sur une touche, lire le caractère lié à la touche
-                char chrRestartAnswer = Console.ReadKey().KeyChar;
-
-                // Si l'utilisateur décide de recommencer le jeu
-                if (char.ToUpper(chrRestartAnswer) == 'O')
-                    Main();
-
-                // Si l'utilisateur décide de ne pas recommencer le jeu (Fin du programme)
-                else if (char.ToUpper(chrRestartAnswer) == 'N')
-                {
-                    Console.CursorVisible = false;
-                    Console.Write("\n\tMerci d'avoir utilisé le programme.                                      \n");
-
-                    // Ferme la console
-                    Environment.Exit(0);
-                }
-
-                else
-                {
-                    Console.CursorVisible = false;
-
-                    Console.Write("\n\tChoix invalide. Veuillez saisir 'o' pour recommencer ou 'n' pour quitter.");
-
-                    // Revenir à la position (sauvegarde faite précédemment) pour ne pas réecrire choix invalide à chaque fois.
-                    Console.SetCursorPosition(intLeft, intTop);
-
-                    // Effacer l'ancien caractère
-                    Console.Write(" ");
-
-                    // Revenir à la position
-                    Console.SetCursorPosition(intLeft, intTop);
-
-                    Console.CursorVisible = true;
-                }
-
-                // Répeter tant que valueOkRestart = false (tant que l'utilisateur n'a pas appuyer sur  'o' 'O' ou 'n' 'N')
-            } while (!blnVerification);
         }
     }
 }
