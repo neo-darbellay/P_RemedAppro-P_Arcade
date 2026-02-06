@@ -41,6 +41,8 @@ namespace P_Arcade
             // Clear the screen and add the title back
             Arcade.ShowTitle(Name);
 
+            Console.CursorVisible = false;
+
             // Draw the game board
             for (int x = 0; x <= bytLength + 1; x++)
             {
@@ -94,12 +96,12 @@ namespace P_Arcade
             byte[,] GameGrid = new byte[bytLength, bytWidth];
 
             // Create the player and put him in the middle
-            bytSnakeX = (byte)(GameGrid.Length / 2);
-            bytSnakeY = bytSnakeX;
+            bytSnakeX = (byte)(bytWidth / 2);
+            bytSnakeY = (byte)(bytLength / 2);
 
             GameGrid[bytSnakeX, bytSnakeY] = 1;
 
-            DrawTile(bytSnakeX, bytSnakeY, '@', ConsoleColor.Black, false);
+            DrawTile(bytSnakeX, bytSnakeY, '@', ConsoleColor.Red, false);
 
             Console.ReadKey(true);
         }
