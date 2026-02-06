@@ -62,8 +62,8 @@ namespace P_Arcade
 
         public Snake((byte, byte) startingPoint)
         {
-            HeadSymbol = '¤';
-            BodySymbol = '*';
+            HeadSymbol = '█';
+            BodySymbol = '█';
 
             _body = new List<SnakePart> { new SnakePart(startingPoint) };
 
@@ -107,7 +107,7 @@ namespace P_Arcade
                 if (snakePart == Head)
                     continue;
 
-                SnakeGame.DrawTile(snakePart.Position.X, snakePart.Position.Y, BodySymbol, ConsoleColor.Black, false);
+                SnakeGame.DrawTile(snakePart.Position.X, snakePart.Position.Y, BodySymbol, ConsoleColor.Gray, false);
             }
 
             SnakeGame.DrawTile(Head.Position.X, Head.Position.Y, HeadSymbol, ConsoleColor.Black, false);
@@ -223,8 +223,6 @@ namespace P_Arcade
             {
                 for (int y = 0; y <= bytWidth + 1; y++)
                 {
-                    Console.ForegroundColor = ConsoleColor.DarkGreen;
-
                     // Top row
                     if (x == 0)
                     {
@@ -257,7 +255,10 @@ namespace P_Arcade
                         else
                         {
                             Console.ResetColor();
-                            Console.BackgroundColor = ConsoleColor.Green;
+                            int gridX = x - 1; // subtract left border
+                            int gridY = y - 1; // subtract top border
+
+                            Console.BackgroundColor = ((gridX / 2) + (gridY / 2)) % 2 == 0 ? ConsoleColor.Green : ConsoleColor.DarkGreen;
                             Console.Write(" ");
                         }
                     }
@@ -438,14 +439,12 @@ namespace P_Arcade
         /// <param name="blnErase">Whether or not it should draw or erase at the given position</param>
         public static void DrawTile(int left, int top, char chrSprite, ConsoleColor ccrSpriteColor, bool blnErase)
         {
-            int startX = FIRST_TILE_X + left;
+            (int X, int Y) intStart = (FIRST_TILE_X + left, FIRST_TILE_Y + top);
 
-            int startY = FIRST_TILE_Y + top;
-
-            Console.BackgroundColor = ConsoleColor.Green;
+            Console.BackgroundColor = ((intStart.X / 2) + (intStart.Y / 2)) % 2 == 0 ? ConsoleColor.DarkGreen : ConsoleColor.Green;
             Console.ForegroundColor = ccrSpriteColor;
 
-            Console.SetCursorPosition(startX, startY);
+            Console.SetCursorPosition(intStart.X, intStart.Y);
             Console.Write(blnErase ? ' ' : chrSprite);
 
             Console.ResetColor();
@@ -481,7 +480,7 @@ namespace P_Arcade
             GameGrid[intAppleY, intAppleX] = 255;
 
             // Draw it
-            DrawTile(intAppleX, intAppleY, '♦', ConsoleColor.Red, false);
+            DrawTile(intAppleX, intAppleY, '█', ConsoleColor.Red, false);
 
             return true;
         }
