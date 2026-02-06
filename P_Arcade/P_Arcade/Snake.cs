@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace P_Arcade
 {
@@ -27,6 +29,11 @@ namespace P_Arcade
         /// An Enum used for the snake's next direction
         /// </summary>
         public enum Direction { Up, Down, Left, Right }
+
+        /// <summary>
+        /// The snake's current direction
+        /// </summary>
+        public Direction? currentDirection = null;
 
         /// <summary>
         /// The ASCII character that the snake will use as a head
@@ -269,45 +276,57 @@ namespace P_Arcade
             Snake player = new Snake(((byte)(bytWidth / 2), (byte)(bytLength / 2)));
             player.Draw();
 
+            // Create a stopwatch for time-based movement
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
             // Handle player movement
-            bool blnContinue = false;
-            do
+            bool blnContinue = true;
+            while (blnContinue)
             {
-                bool blnAteApple = false;
-
-                ConsoleKey playerInputKey = Console.ReadKey(true).Key;
-                if (playerInputKey == ConsoleKey.Q) break;
-
-                switch (playerInputKey)
+                // Handle input
+                if (Console.KeyAvailable)
                 {
-                    case ConsoleKey.W:
-                    case ConsoleKey.UpArrow:
-                        blnContinue = player.Move(Snake.Direction.Up, out blnAteApple);
+                    ConsoleKey playerInputKey = Console.ReadKey(true).Key;
 
-                        break;
-                    case ConsoleKey.S:
-                    case ConsoleKey.DownArrow:
-                        blnContinue = player.Move(Snake.Direction.Down, out blnAteApple);
-
-                        break;
-                    case ConsoleKey.A:
-                    case ConsoleKey.LeftArrow:
-                        blnContinue = player.Move(Snake.Direction.Left, out blnAteApple);
-
-                        break;
-                    case ConsoleKey.D:
-                    case ConsoleKey.RightArrow:
-                        blnContinue = player.Move(Snake.Direction.Right, out blnAteApple);
-
-                        break;
+                    switch (playerInputKey)
+                    {
+                        case ConsoleKey.W:
+                        case ConsoleKey.UpArrow:
+                            if (player.currentDirection != Snake.Direction.Down)
+                                player.currentDirection = Snake.Direction.Up;
+                            break;
+                        case ConsoleKey.S:
+                        case ConsoleKey.DownArrow:
+                            if (player.currentDirection != Snake.Direction.Up)
+                                player.currentDirection = Snake.Direction.Down;
+                            break;
+                        case ConsoleKey.A:
+                        case ConsoleKey.LeftArrow:
+                            if (player.currentDirection != Snake.Direction.Right)
+                                player.currentDirection = Snake.Direction.Left;
+                            break;
+                        case ConsoleKey.D:
+                        case ConsoleKey.RightArrow:
+                            if (player.currentDirection != Snake.Direction.Left)
+                                player.currentDirection = Snake.Direction.Right;
+                            break;
+                        case ConsoleKey.Q:
+                        case ConsoleKey.Escape:
+                            blnContinue = false;
+                            break;
+                    }
                 }
 
-                if (blnAteApple)
+                // Move snake at fixed interval
+                if (player.currentDirection.HasValue && stopwatch.ElapsedMilliseconds >= 100)
                 {
-                    CurrentScore += 1;
+                    bool blnAteApple;
+                    blnContinue = player.Move(player.currentDirection.Value, out blnAteApple);
+                    if (blnAteApple) CurrentScore++;
+                    stopwatch.Restart();
                 }
             }
-            while (blnContinue);
 
             if (SupportsHighscore)
             {
@@ -321,13 +340,14 @@ namespace P_Arcade
                 string name = Console.ReadLine();
 
                 if (string.IsNullOrWhiteSpace(name))
-                    name = "John Doe";
+                    name = "Tmp";
 
                 HighScores.Add(new HighScore(CurrentScore, name));
 
                 Arcade.SetHighScoresToFile(this);
             }
 
+            Thread.Sleep(5);
         }
 
         /// <summary>

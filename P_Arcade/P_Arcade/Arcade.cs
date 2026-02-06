@@ -30,7 +30,7 @@ namespace P_Arcade
             }
 
             // Add one option, which is to exit the program
-            GameNames.Add("Exit");
+            GameNames.Add("3. Exit");
 
             // Show every available games and handle the user's choice
             do
@@ -189,14 +189,14 @@ namespace P_Arcade
         {
             ShowTitle(game.Name);
 
-            Console.WriteLine("   " + game.Name + "'s highest scores: ");
+            Console.WriteLine("   " + game.Name + "'s top " + intEntryAmount + " highest scores: ");
 
             foreach (HighScore score in game.HighScores.OrderByDescending(score => score.Score).Take(intEntryAmount))
             {
                 Console.WriteLine("      " + score.Initials + ": " + score.Score);
             }
 
-            Console.WriteLine("\n\n   -> Back");
+            Console.WriteLine("\n   -> Back");
 
             Console.ReadKey(true);
         }
