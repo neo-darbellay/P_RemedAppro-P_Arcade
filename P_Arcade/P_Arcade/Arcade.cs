@@ -16,7 +16,7 @@ namespace P_Arcade
             {
                 // Initialize games
                 new Connect4(),
-                new Snake()
+                new SnakeGame()
             };
 
             // Set up their scores and a GameNames table
@@ -193,7 +193,7 @@ namespace P_Arcade
 
             foreach (HighScore score in game.HighScores.OrderByDescending(score => score.Score).Take(intEntryAmount))
             {
-                Console.WriteLine("      " + score.Score + "\t" + score.Initials);
+                Console.WriteLine("      " + score.Initials + ": " + score.Score);
             }
 
             Console.WriteLine("\n\n   -> Back");

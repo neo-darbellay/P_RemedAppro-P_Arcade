@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace P_Arcade
 {
@@ -15,13 +11,19 @@ namespace P_Arcade
         public HighScore()
         {
             Score = 0;
-            Initials = "John Doe";
+            Initials = "TMP";
         }
 
-        public HighScore(int score, string initials)
+        public HighScore(int score, string name)
         {
             Score = score;
-            Initials = initials;
+
+            string strTrimmed = (name ?? "Tmp").Trim().ToUpper();
+
+            if (strTrimmed.Length >= 3)
+                Initials = strTrimmed.Substring(0, 3);
+            else
+                Initials = strTrimmed.PadLeft(3, ' ');
         }
     }
 }

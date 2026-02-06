@@ -1,18 +1,174 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace P_Arcade
 {
     /// <summary>
+    /// A part of the snake
+    /// </summary>
+    public class SnakePart
+    {
+        /// <summary>
+        /// This part's position
+        /// </summary>
+        public (byte X, byte Y) Position { get; set; }
+
+        public SnakePart((byte X, byte Y) position) { Position = position; }
+    }
+
+    /// <summary>
+    /// The snake
+    /// </summary>
+    public class Snake
+    {
+        /// <summary>
+        /// An Enum used for the snake's next direction
+        /// </summary>
+        public enum Direction { Up, Down, Left, Right }
+
+        /// <summary>
+        /// The ASCII character that the snake will use as a head
+        /// </summary>
+        public char HeadSymbol { get; set; }
+
+        /// <summary>
+        /// The ASCII character that the snake will use as a body
+        /// </summary>
+        public char BodySymbol { get; set; }
+
+        /// <summary>
+        /// An array of snake parts, used as the snake's body
+        /// </summary>
+        private readonly List<SnakePart> _body;
+
+        /// <summary>
+        /// The snake's head
+        /// </summary>
+        private SnakePart Head => _body.First();
+
+        /// <summary>
+        /// The snake's tail
+        /// </summary>
+        private SnakePart Tail => _body.Last();
+
+        public Snake((byte, byte) startingPoint)
+        {
+            HeadSymbol = '¤';
+            BodySymbol = '*';
+
+            _body = new List<SnakePart> { new SnakePart(startingPoint) };
+
+            ClearFromGrid();
+            WriteToGrid();
+        }
+
+        /// <summary>
+        /// Clear the snake from the logic grid
+        /// This method should be called before doing any snake movement
+        /// </summary>
+        private void ClearFromGrid()
+        {
+            foreach (SnakePart part in _body)
+            {
+                SnakeGame.GameGrid[part.Position.Y, part.Position.X] = 0;
+            }
+        }
+
+        /// <summary>
+        /// Add the snake to the logic grid
+        /// </summary>
+        private void WriteToGrid()
+        {
+            // Body
+            foreach (SnakePart part in _body.Skip(1))
+            {
+                SnakeGame.GameGrid[part.Position.Y, part.Position.X] = 2;
+            }
+
+            SnakeGame.GameGrid[Head.Position.Y, Head.Position.X] = 1;
+        }
+
+        /// <summary>
+        /// Draw the snake
+        /// </summary>
+        public void Draw()
+        {
+            foreach (SnakePart snakePart in _body)
+            {
+                if (snakePart == Head)
+                    continue;
+
+                SnakeGame.DrawTile(snakePart.Position.X, snakePart.Position.Y, BodySymbol, ConsoleColor.Black, false);
+            }
+
+            SnakeGame.DrawTile(Head.Position.X, Head.Position.Y, HeadSymbol, ConsoleColor.Black, false);
+        }
+
+        /// <summary>
+        /// Move the snake
+        /// </summary>
+        /// <param name="direction">Which direction to go in</param>
+        /// <returns>true if the movement worked, false if the movement failed, meaning the snake died</returns>
+        public bool Move(Direction direction, out bool blnAteApple)
+        {
+            blnAteApple = false;
+
+            byte bytNewX = Head.Position.X;
+            byte bytNewY = Head.Position.Y;
+
+            switch (direction)
+            {
+                case Direction.Up: bytNewY--; break;
+                case Direction.Down: bytNewY++; break;
+                case Direction.Left: bytNewX--; break;
+                case Direction.Right: bytNewX++; break;
+            }
+
+            (byte X, byte Y) newPos = (bytNewX, bytNewY);
+
+            // Check for collisions (border and self collisions)
+            if (bytNewX < 0 || bytNewY < 0 || bytNewX >= SnakeGame.GameGrid.GetLength(1) || bytNewY >= SnakeGame.GameGrid.GetLength(0) || _body.Any(p => p.Position.Equals(newPos)))
+            {
+                return false;
+            }
+
+            blnAteApple = SnakeGame.GameGrid[newPos.Y, newPos.X] == 255;
+
+            ClearFromGrid();
+
+            // Insert new head
+            _body.Insert(0, new SnakePart(newPos));
+
+            if (!blnAteApple)
+            {
+                // Remove tail ONLY if no apple was eaten
+                SnakePart tail = _body.Last();
+                SnakeGame.DrawTile(tail.Position.X, tail.Position.Y, BodySymbol, ConsoleColor.Black, true);
+                _body.RemoveAt(_body.Count - 1);
+            }
+            else
+            {
+                SnakeGame.GenerateApple();
+            }
+
+            WriteToGrid();
+            Draw();
+
+            return true;
+        }
+    }
+
+    /// <summary>
     /// The Snake game, ported to C# console
     /// </summary>
-    internal class Snake : Game
+    internal class SnakeGame : Game
     {
         /// <summary>
         /// The Snake game's constructor
         /// </summary>
-        public Snake() : base("Snake", false) { }
+        public SnakeGame() : base("Snake", true) { }
 
         // Constants used for min/max of length/width
         const byte VAL_MIN_LENGTH = 6 * 2;
@@ -24,18 +180,12 @@ namespace P_Arcade
         static byte bytLength = 0;
         static byte bytWidth = 0;
 
-        // The current snake's size
-        static byte bytSnakeSize = 1;
-
-        // The current snake's position
-        static (byte X, byte Y) bytSnakePosition = (0, 0);
-
         // The first tile's X and Y position
         const byte FIRST_TILE_X = 4;
         const byte FIRST_TILE_Y = 6;
 
         // The game's grid
-        static byte[,] GameGrid;
+        public static byte[,] GameGrid;
 
         static Random rng = new Random();
 
@@ -50,6 +200,8 @@ namespace P_Arcade
             // Full screen the app
             IntPtr handle = GetConsoleWindow();
             ShowWindow(handle, 3);
+
+            CurrentScore = 0;
 
             // Get user-related values
             GetUserInput();
@@ -111,26 +263,71 @@ namespace P_Arcade
             // Create the game grid
             GameGrid = new byte[bytLength, bytWidth];
 
+            GenerateApple();
+
             // Create the player and put him in the middle
-            bytSnakePosition.X = (byte)(bytWidth / 2);
-            bytSnakePosition.Y = (byte)(bytLength / 2);
+            Snake player = new Snake(((byte)(bytWidth / 2), (byte)(bytLength / 2)));
+            player.Draw();
 
-            GameGrid[bytSnakePosition.Y, bytSnakePosition.X] = 1;
+            // Handle player movement
+            bool blnContinue = false;
+            do
+            {
+                bool blnAteApple = false;
 
-            DrawTile(bytSnakePosition.X, bytSnakePosition.Y, '█', ConsoleColor.DarkGreen, false);
+                ConsoleKey playerInputKey = Console.ReadKey(true).Key;
+                if (playerInputKey == ConsoleKey.Q) break;
 
-            GenerateApple();
-            GenerateApple();
-            GenerateApple();
-            GenerateApple();
-            GenerateApple();
-            GenerateApple();
-            GenerateApple();
-            GenerateApple();
-            GenerateApple();
-            GenerateApple();
+                switch (playerInputKey)
+                {
+                    case ConsoleKey.W:
+                    case ConsoleKey.UpArrow:
+                        blnContinue = player.Move(Snake.Direction.Up, out blnAteApple);
 
-            Console.ReadKey(true);
+                        break;
+                    case ConsoleKey.S:
+                    case ConsoleKey.DownArrow:
+                        blnContinue = player.Move(Snake.Direction.Down, out blnAteApple);
+
+                        break;
+                    case ConsoleKey.A:
+                    case ConsoleKey.LeftArrow:
+                        blnContinue = player.Move(Snake.Direction.Left, out blnAteApple);
+
+                        break;
+                    case ConsoleKey.D:
+                    case ConsoleKey.RightArrow:
+                        blnContinue = player.Move(Snake.Direction.Right, out blnAteApple);
+
+                        break;
+                }
+
+                if (blnAteApple)
+                {
+                    CurrentScore += 1;
+                }
+            }
+            while (blnContinue);
+
+            if (SupportsHighscore)
+            {
+                Console.Clear();
+                Arcade.ShowTitle(Name);
+
+                Console.WriteLine("   Game Over!");
+                Console.WriteLine($"   Final Score: {CurrentScore}");
+                Console.Write("\n   Enter your name: ");
+
+                string name = Console.ReadLine();
+
+                if (string.IsNullOrWhiteSpace(name))
+                    name = "John Doe";
+
+                HighScores.Add(new HighScore(CurrentScore, name));
+
+                Arcade.SetHighScoresToFile(this);
+            }
+
         }
 
         /// <summary>
@@ -219,7 +416,7 @@ namespace P_Arcade
         /// <param name="chrSprite">The char to draw</param>
         /// <param name="ccrSpriteColor">The ConsoleColor of the sprite</param>
         /// <param name="blnErase">Whether or not it should draw or erase at the given position</param>
-        private void DrawTile(int left, int top, char chrSprite, ConsoleColor ccrSpriteColor, bool blnErase)
+        public static void DrawTile(int left, int top, char chrSprite, ConsoleColor ccrSpriteColor, bool blnErase)
         {
             int startX = FIRST_TILE_X + left;
 
@@ -237,7 +434,7 @@ namespace P_Arcade
         /// <summary>
         /// Generates an apple at a random place on the map
         /// </summary>
-        private bool GenerateApple()
+        public static bool GenerateApple()
         {
             List<(int x, int y)> emptyCells = new List<(int x, int y)>();
 
