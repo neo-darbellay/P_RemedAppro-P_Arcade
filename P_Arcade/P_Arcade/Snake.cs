@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace P_Arcade
 {
@@ -14,9 +16,9 @@ namespace P_Arcade
 
         // Constants used for min/max of length/width
         const byte VAL_MIN_LENGTH = 6 * 2;
-        const byte VAL_MIN_WIDTH = 6 * 3;
+        const byte VAL_MIN_WIDTH = 6 * 4;
         const byte VAL_MAX_LENGTH = 25 * 2;
-        const byte VAL_MAX_WIDTH = 25 * 3;
+        const byte VAL_MAX_WIDTH = 25 * 4;
 
         // User input for length and width
         static byte bytLength = 0;
@@ -26,15 +28,29 @@ namespace P_Arcade
         static byte bytSnakeSize = 1;
 
         // The current snake's position
-        static byte bytSnakeX = 0;
-        static byte bytSnakeY = 0;
+        static (byte X, byte Y) bytSnakePosition = (0, 0);
 
         // The first tile's X and Y position
         const byte FIRST_TILE_X = 4;
         const byte FIRST_TILE_Y = 6;
 
+        // The game's grid
+        static byte[,] GameGrid;
+
+        static Random rng = new Random();
+
+        [DllImport("kernel32.dll")]
+        public static extern IntPtr GetConsoleWindow();
+
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
         public override void Start()
         {
+            // Full screen the app
+            IntPtr handle = GetConsoleWindow();
+            ShowWindow(handle, 3);
+
             // Get user-related values
             GetUserInput();
 
@@ -93,15 +109,26 @@ namespace P_Arcade
             }
 
             // Create the game grid
-            byte[,] GameGrid = new byte[bytLength, bytWidth];
+            GameGrid = new byte[bytLength, bytWidth];
 
             // Create the player and put him in the middle
-            bytSnakeX = (byte)(bytWidth / 2);
-            bytSnakeY = (byte)(bytLength / 2);
+            bytSnakePosition.X = (byte)(bytWidth / 2);
+            bytSnakePosition.Y = (byte)(bytLength / 2);
 
-            GameGrid[bytSnakeX, bytSnakeY] = 1;
+            GameGrid[bytSnakePosition.Y, bytSnakePosition.X] = 1;
 
-            DrawTile(bytSnakeX, bytSnakeY, '@', ConsoleColor.Red, false);
+            DrawTile(bytSnakePosition.X, bytSnakePosition.Y, '█', ConsoleColor.DarkGreen, false);
+
+            GenerateApple();
+            GenerateApple();
+            GenerateApple();
+            GenerateApple();
+            GenerateApple();
+            GenerateApple();
+            GenerateApple();
+            GenerateApple();
+            GenerateApple();
+            GenerateApple();
 
             Console.ReadKey(true);
         }
@@ -187,16 +214,16 @@ namespace P_Arcade
         /// <summary>
         /// Draws a sprite at the given x and y coordinate
         /// </summary>
-        /// <param name="x">X pos</param>
-        /// <param name="y">Y pos</param>
+        /// <param name="left"></param>
+        /// <param name="top"></param>
         /// <param name="chrSprite">The char to draw</param>
         /// <param name="ccrSpriteColor">The ConsoleColor of the sprite</param>
         /// <param name="blnErase">Whether or not it should draw or erase at the given position</param>
-        void DrawTile(int x, int y, char chrSprite, ConsoleColor ccrSpriteColor, bool blnErase)
+        private void DrawTile(int left, int top, char chrSprite, ConsoleColor ccrSpriteColor, bool blnErase)
         {
-            int startX = FIRST_TILE_X + x;
+            int startX = FIRST_TILE_X + left;
 
-            int startY = FIRST_TILE_Y + y;
+            int startY = FIRST_TILE_Y + top;
 
             Console.BackgroundColor = ConsoleColor.Green;
             Console.ForegroundColor = ccrSpriteColor;
@@ -205,6 +232,41 @@ namespace P_Arcade
             Console.Write(blnErase ? ' ' : chrSprite);
 
             Console.ResetColor();
+        }
+
+        /// <summary>
+        /// Generates an apple at a random place on the map
+        /// </summary>
+        private bool GenerateApple()
+        {
+            List<(int x, int y)> emptyCells = new List<(int x, int y)>();
+
+            // Collect all the empty cells
+            for (int y = 0; y < bytLength; y++)
+            {
+                for (int x = 0; x < bytWidth; x++)
+                {
+                    if (GameGrid[y, x] == 0)
+                    {
+                        emptyCells.Add((x, y));
+                    }
+                }
+            }
+
+            // If there are no empty cells, we can't place an apple
+            if (emptyCells.Count == 0)
+                return false;
+
+            // Pick a random empty cell
+            (int intAppleX, int intAppleY) = emptyCells[rng.Next(emptyCells.Count)];
+
+            // Place the apple on the grid
+            GameGrid[intAppleY, intAppleX] = 255;
+
+            // Draw it
+            DrawTile(intAppleX, intAppleY, '♦', ConsoleColor.Red, false);
+
+            return true;
         }
 
         /// <summary>
