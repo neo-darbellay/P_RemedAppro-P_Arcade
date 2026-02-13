@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace P_Arcade
@@ -19,6 +20,8 @@ namespace P_Arcade
 
         private static int intMoves = 0;
 
+        private static (byte row, byte col) emptyTile;
+
         [DllImport("kernel32.dll")]
         public static extern IntPtr GetConsoleWindow();
 
@@ -36,14 +39,85 @@ namespace P_Arcade
             // Get user-related values
             GetUserInput();
 
-            // Clear the screen and add the title back
-            Arcade.ShowTitle(Name);
-
-            // Generate the grid and draw it
+            // Generate the grid
             byte[,] bytGrid = CreateAndFillGrid();
-            DrawGrid(bytGrid);
 
-            Console.ReadKey(true);
+            // Start the game up
+            Console.CursorVisible = false;
+            do
+            {
+                // Clear the screen and add the title back
+                Arcade.ShowTitle(Name);
+                DrawGrid(bytGrid);
+
+                // Check to see if the user pressed a valid key
+                ConsoleKey keyPressed = Console.ReadKey(true).Key;
+
+                ConsoleKey[] tab_MovementKeys =
+                {
+                    ConsoleKey.UpArrow, ConsoleKey.DownArrow, ConsoleKey.LeftArrow, ConsoleKey.RightArrow, ConsoleKey.W, ConsoleKey.A, ConsoleKey.S, ConsoleKey.D
+                };
+
+                if (tab_MovementKeys.Contains(keyPressed))
+                {
+                    // Determine the movement direction
+                    (sbyte bytRow, sbyte bytCol) = (0, 0);
+
+                    switch (keyPressed)
+                    {
+                        case ConsoleKey.LeftArrow: case ConsoleKey.A: bytCol = -1; break;
+                        case ConsoleKey.RightArrow: case ConsoleKey.D: bytCol = 1; break;
+                        case ConsoleKey.UpArrow: case ConsoleKey.W: bytRow = -1; break;
+                        case ConsoleKey.DownArrow: case ConsoleKey.S: bytRow = 1; break;
+                    }
+
+                    bool blnResult;
+
+                    (emptyTile, blnResult) = SwapTiles(bytGrid, emptyTile, bytRow, bytCol);
+
+                    if (blnResult) intMoves++;
+                }
+                else if (keyPressed == ConsoleKey.Escape || keyPressed == ConsoleKey.R)
+                {
+
+                    break;
+                }
+            } while (true);
+
+            Console.CursorVisible = true;
+        }
+
+        /// <summary>
+        /// Swap two tiles (with one being empty)
+        /// </summary>
+        /// <param name="bytGrid"></param>
+        /// <param name="emptyTile"></param>
+        /// <param name="bytRow">How much to swap (X)</param>
+        /// <param name="bytCol">How much to swap (Y)</param>
+        /// <returns>The empty tile's position</returns>
+        private static ((byte row, byte col) emptyTile, bool blnResult) SwapTiles(byte[,] bytGrid, (byte row, byte col) emptyTile, sbyte bytRow, sbyte bytCol)
+        {
+            bool blnResult = false;
+
+            // Calculate the new position of the empty tile
+            byte bytNewRow = (byte)(emptyTile.row + bytRow);
+            byte bytNewCol = (byte)(emptyTile.col + bytCol);
+
+            // Check if the new position is within the grid boundaries
+            if (bytNewRow >= 0 && bytNewRow < bytWidth &&
+                bytNewCol >= 0 && bytNewCol < bytLength)
+            {
+                // Swap the empty tile with the adjacent number
+                bytGrid[emptyTile.row, emptyTile.col] = bytGrid[bytNewRow, bytNewCol];
+                bytGrid[bytNewRow, bytNewCol] = 0;
+
+                // Update the empty tile position
+                emptyTile = (bytNewRow, bytNewCol);
+
+                blnResult = true;
+            }
+
+            return (emptyTile, blnResult);
         }
 
         /// <summary>
@@ -72,37 +146,23 @@ namespace P_Arcade
             Random random = new Random();
 
             // Track the position of the empty tile
-            (byte row, byte col) emptyTile = ((byte)(bytWidth - 1), (byte)(bytLength - 1));
+            emptyTile = ((byte)(bytWidth - 1), (byte)(bytLength - 1));
 
             // Shuffle the grid by making random valid moves
             for (int intMove = 0; intMove < bytWidth * bytLength * 50; intMove++)
             {
                 // Determine the movement direction
-                (sbyte bytRow, sbyte byteCol) = (0, 0);
+                (sbyte bytRow, sbyte bytCol) = (0, 0);
 
                 switch (random.Next(4))
                 {
                     case 0: bytRow = -1; break;
                     case 1: bytRow = 1; break;
-                    case 2: byteCol = -1; break;
-                    case 3: byteCol = 1; break;
+                    case 2: bytCol = -1; break;
+                    case 3: bytCol = 1; break;
                 }
 
-                // Calculate the new position of the empty tile
-                byte bytNewRow = (byte)(emptyTile.row + bytRow);
-                byte bytNewCol = (byte)(emptyTile.col + byteCol);
-
-                // Check if the new position is within the grid boundaries
-                if (bytNewRow >= 0 && bytNewRow < bytWidth &&
-                    bytNewCol >= 0 && bytNewCol < bytLength)
-                {
-                    // Swap the empty tile with the adjacent number
-                    bytGrid[emptyTile.row, emptyTile.col] = bytGrid[bytNewRow, bytNewCol];
-                    bytGrid[bytNewRow, bytNewCol] = 0;
-
-                    // Update the empty tile position
-                    emptyTile = (bytNewRow, bytNewCol);
-                }
+                (emptyTile, _) = SwapTiles(bytGrid, emptyTile, bytRow, bytCol);
             }
 
             return bytGrid;
@@ -116,6 +176,15 @@ namespace P_Arcade
         {
             byte bytHeight = (byte)bytGrid.GetLength(0);
             byte bytWidth = (byte)bytGrid.GetLength(1);
+
+            string[] tab_strInstructions = new string[]
+            {
+                "Instructions:",
+                "Use arrow keys to move the empty (white) tile",
+                "Press ESC to quit the game",
+                "-----------------------------",
+                "Moves made: " + intMoves
+            };
 
             for (byte x = 0; x < bytHeight; x++)
             {
@@ -132,8 +201,9 @@ namespace P_Arcade
 
                     if (bytValue == 0)
                     {
+                        Console.Write(" ");
                         Console.BackgroundColor = ConsoleColor.White;
-                        Console.Write("  ");
+                        Console.Write(" ");
                         Console.ResetColor();
                         Console.Write(" ║");
                     }
@@ -151,30 +221,14 @@ namespace P_Arcade
                     }
                 }
 
-                // Draw scoreboard beside the row using switch
-                switch (x)
+                // Draw instruction if available
+                if (x < tab_strInstructions.Length)
                 {
-                    case 0:
-                        Console.WriteLine("\tInstructions:");
-                        break;
-                    case 1:
-                        Console.WriteLine("\tUse arrow keys to move the empty (red) tile");
-                        break;
-                    case 2:
-                        Console.WriteLine("\tPress ESC to quit the game");
-                        break;
-                    case 3:
-                        Console.WriteLine("\tPress R to restart a new game");
-                        break;
-                    case 4:
-                        Console.WriteLine("\t-----------------------------");
-                        break;
-                    case 5:
-                        Console.WriteLine("\tMoves made: " + intMoves);
-                        break;
-                    default:
-                        Console.WriteLine();
-                        break;
+                    Console.WriteLine("\t" + tab_strInstructions[x]);
+                }
+                else
+                {
+                    Console.WriteLine();
                 }
 
                 // Draw separation line or bottom border
@@ -185,6 +239,11 @@ namespace P_Arcade
                     for (int y = 0; y < bytWidth; y++)
                         Console.Write((y == 0 ? "   ╚" : "") + "═══" + (y == bytWidth - 1 ? "╝\n" : "╩"));
             }
+
+            // If grid is smaller than instruction count, print remaining instructions below
+            for (int i = bytHeight; i < tab_strInstructions.Length; i++)
+                for (int y = 0; y < bytWidth; y++)
+                    Console.Write((y == 0 ? "    " : "") + "   " + (y == bytWidth - 1 ? (" \t" + tab_strInstructions[i] + "\n") : " "));
         }
 
 
