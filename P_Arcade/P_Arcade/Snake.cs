@@ -67,7 +67,7 @@ namespace P_Arcade
             HeadSymbol = '█';
             BodySymbol = '█';
 
-            _body = new List<SnakePart> { new SnakePart(startingPoint) };
+            _body = new List<SnakePart> { new SnakePart(startingPoint), new SnakePart(startingPoint) };
 
             ClearFromGrid();
             WriteToGrid();
