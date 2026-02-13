@@ -36,6 +36,11 @@ namespace P_Arcade
         public Direction? currentDirection = null;
 
         /// <summary>
+        /// The snake's previous direction
+        /// </summary>
+        private Direction previousDirection = Direction.Up;
+
+        /// <summary>
         /// The ASCII character that the snake will use as a head
         /// </summary>
         public char HeadSymbol { get; set; }
@@ -55,10 +60,8 @@ namespace P_Arcade
         /// </summary>
         private SnakePart Head => _body.First();
 
-        /// <summary>
-        /// The snake's tail
-        /// </summary>
-        private SnakePart Tail => _body.Last();
+        private readonly ConsoleColor PrimaryColor = ConsoleColor.DarkGreen;
+        private readonly ConsoleColor SecondaryColor = ConsoleColor.Green;
 
         public Snake((byte, byte) startingPoint)
         {
@@ -107,10 +110,10 @@ namespace P_Arcade
                 if (snakePart == Head)
                     continue;
 
-                SnakeGame.DrawTile(snakePart.Position.X, snakePart.Position.Y, BodySymbol, ConsoleColor.Gray, false);
+                SnakeGame.DrawTile(snakePart.Position.X, snakePart.Position.Y, BodySymbol, SecondaryColor, false);
             }
 
-            SnakeGame.DrawTile(Head.Position.X, Head.Position.Y, HeadSymbol, ConsoleColor.Black, false);
+            SnakeGame.DrawTile(Head.Position.X, Head.Position.Y, HeadSymbol, PrimaryColor, false);
         }
 
         /// <summary>
@@ -135,8 +138,15 @@ namespace P_Arcade
 
             (byte X, byte Y) newPos = (bytNewX, bytNewY);
 
+            // If there is a self collision with the first body part (other than the head), move using the previous position
+            if (_body.Count >= 2 && _body[1].Position == newPos)
+                return Move(previousDirection, out blnAteApple);
+
             // Check for collisions (border and self collisions)
-            if (bytNewX < 0 || bytNewY < 0 || bytNewX >= SnakeGame.GameGrid.GetLength(1) || bytNewY >= SnakeGame.GameGrid.GetLength(0) || _body.Any(p => p.Position.Equals(newPos)))
+            bool blnSelfCollision = _body.Any(p => p.Position.Equals(newPos));
+            bool blnBorderCollision = bytNewX < 0 || bytNewY < 0 || bytNewX >= SnakeGame.GameGrid.GetLength(1) || bytNewY >= SnakeGame.GameGrid.GetLength(0);
+
+            if (blnSelfCollision || blnBorderCollision)
             {
                 return false;
             }
@@ -162,6 +172,8 @@ namespace P_Arcade
 
             WriteToGrid();
             Draw();
+
+            previousDirection = direction;
 
             return true;
         }
@@ -194,7 +206,11 @@ namespace P_Arcade
         // The game's grid
         public static byte[,] GameGrid;
 
-        static Random rng = new Random();
+        static readonly Random rng = new Random();
+
+        private static readonly ConsoleColor PrimaryBackgroundColor = ConsoleColor.Gray;
+        private static readonly ConsoleColor SecondaryBackgroundColor = ConsoleColor.White;
+
 
         [DllImport("kernel32.dll")]
         public static extern IntPtr GetConsoleWindow();
@@ -258,7 +274,7 @@ namespace P_Arcade
                             int gridX = x - 1; // subtract left border
                             int gridY = y - 1; // subtract top border
 
-                            Console.BackgroundColor = ((gridX / 2) + (gridY / 2)) % 2 == 0 ? ConsoleColor.Green : ConsoleColor.DarkGreen;
+                            Console.BackgroundColor = ((gridX / 2) + (gridY / 2)) % 2 == 0 ? PrimaryBackgroundColor : SecondaryBackgroundColor;
                             Console.Write(" ");
                         }
                     }
@@ -320,10 +336,14 @@ namespace P_Arcade
                 }
 
                 // Move snake at fixed interval
-                if (player.currentDirection.HasValue && stopwatch.ElapsedMilliseconds >= 100)
+                byte bytAmountOfWait = 50;
+
+                if (player.currentDirection == Snake.Direction.Up || player.currentDirection == Snake.Direction.Down)
+                    bytAmountOfWait += bytAmountOfWait;
+
+                if (player.currentDirection.HasValue && stopwatch.ElapsedMilliseconds >= bytAmountOfWait)
                 {
-                    bool blnAteApple;
-                    blnContinue = player.Move(player.currentDirection.Value, out blnAteApple);
+                    blnContinue = player.Move(player.currentDirection.Value, out bool blnAteApple);
                     if (blnAteApple) CurrentScore++;
                     stopwatch.Restart();
                 }
@@ -441,7 +461,7 @@ namespace P_Arcade
         {
             (int X, int Y) intStart = (FIRST_TILE_X + left, FIRST_TILE_Y + top);
 
-            Console.BackgroundColor = ((intStart.X / 2) + (intStart.Y / 2)) % 2 == 0 ? ConsoleColor.DarkGreen : ConsoleColor.Green;
+            Console.BackgroundColor = ((intStart.X / 2) + (intStart.Y / 2)) % 2 != 0 ? PrimaryBackgroundColor : SecondaryBackgroundColor;
             Console.ForegroundColor = ccrSpriteColor;
 
             Console.SetCursorPosition(intStart.X, intStart.Y);
@@ -480,7 +500,7 @@ namespace P_Arcade
             GameGrid[intAppleY, intAppleX] = 255;
 
             // Draw it
-            DrawTile(intAppleX, intAppleY, '█', ConsoleColor.Red, false);
+            DrawTile(intAppleX, intAppleY, '█', ConsoleColor.DarkRed, false);
 
             return true;
         }
