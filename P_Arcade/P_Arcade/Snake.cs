@@ -188,13 +188,15 @@ namespace P_Arcade
         /// </summary>
         public SnakeGame() : base("Snake", true) { }
 
-        // Constants used for min/max of length/width/apples
+        // Constants used for min/max of length/width/apples/speed
         const byte VAL_MIN_LENGTH = 6 * 2;
         const byte VAL_MIN_WIDTH = 6 * 4;
         const byte VAL_MIN_APPLES = 1;
+        const byte VAL_MIN_SPEED = 1;
         const byte VAL_MAX_LENGTH = 25 * 2;
         const byte VAL_MAX_WIDTH = 25 * 4;
         const byte VAL_MAX_APPLES = 10;
+        const byte VAL_MAX_SPEED = 4;
 
         // User input for length and width
         static byte bytLength = 0;
@@ -206,6 +208,9 @@ namespace P_Arcade
 
         // How many apples need to be on screen at once
         public static byte bytAmountOfApples;
+
+        // The game's current speed
+        public static byte bytGameSpeed;
 
         // The game's grid
         public static byte[,] GameGrid;
@@ -343,12 +348,12 @@ namespace P_Arcade
                 }
 
                 // Move snake at fixed interval
-                byte bytAmountOfWait = 50;
+                byte bytAmountOfWait = 100;
 
                 if (player.currentDirection == Snake.Direction.Up || player.currentDirection == Snake.Direction.Down)
                     bytAmountOfWait += bytAmountOfWait;
 
-                if (player.currentDirection.HasValue && stopwatch.ElapsedMilliseconds >= bytAmountOfWait)
+                if (player.currentDirection.HasValue && stopwatch.ElapsedMilliseconds >= (bytAmountOfWait / bytGameSpeed))
                 {
                     blnContinue = player.Move(player.currentDirection.Value, out bool blnAteApple);
                     if (blnAteApple) CurrentScore++;
@@ -432,6 +437,23 @@ namespace P_Arcade
 
             // Get the correct input
             GetInputInBounds(out bytAmountOfApples, VAL_MIN_APPLES, VAL_MAX_APPLES);
+
+
+            // Ask the user for the game's speed
+            Console.Write("\n   Please enter how fast you want the game to be.\n   The value needs to be greater than ");
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write(VAL_MIN_SPEED);
+            Console.ResetColor();
+
+            Console.Write(" and smaller than ");
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(VAL_MAX_SPEED);
+            Console.ResetColor();
+
+            // Get the correct input
+            GetInputInBounds(out bytGameSpeed, VAL_MIN_SPEED, VAL_MAX_SPEED);
         }
 
         /// <summary>
