@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 namespace P_Arcade
 {
@@ -189,11 +188,13 @@ namespace P_Arcade
         /// </summary>
         public SnakeGame() : base("Snake", true) { }
 
-        // Constants used for min/max of length/width
+        // Constants used for min/max of length/width/apples
         const byte VAL_MIN_LENGTH = 6 * 2;
         const byte VAL_MIN_WIDTH = 6 * 4;
+        const byte VAL_MIN_APPLES = 1;
         const byte VAL_MAX_LENGTH = 25 * 2;
         const byte VAL_MAX_WIDTH = 25 * 4;
+        const byte VAL_MAX_APPLES = 10;
 
         // User input for length and width
         static byte bytLength = 0;
@@ -202,6 +203,9 @@ namespace P_Arcade
         // The first tile's X and Y position
         const byte FIRST_TILE_X = 4;
         const byte FIRST_TILE_Y = 6;
+
+        // How many apples need to be on screen at once
+        public static byte bytAmountOfApples;
 
         // The game's grid
         public static byte[,] GameGrid;
@@ -287,7 +291,10 @@ namespace P_Arcade
             // Create the game grid
             GameGrid = new byte[bytLength, bytWidth];
 
-            GenerateApple();
+            for (int i = 0; i < bytAmountOfApples; i++)
+            {
+                GenerateApple();
+            }
 
             // Create the player and put him in the middle
             Snake player = new Snake(((byte)(bytWidth / 2), (byte)(bytLength / 2)));
@@ -367,8 +374,6 @@ namespace P_Arcade
 
                 Arcade.SetHighScoresToFile(this);
             }
-
-            Thread.Sleep(5);
         }
 
         /// <summary>
@@ -410,6 +415,23 @@ namespace P_Arcade
 
             // Get the correct input
             GetInputInBounds(out bytWidth, VAL_MIN_WIDTH, VAL_MAX_WIDTH);
+
+
+            // Ask the user for the number of apples they want
+            Console.Write("\n   Please enter the amount of apples that you want on screen at once.\n   The value needs to be greater than ");
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write(VAL_MIN_APPLES);
+            Console.ResetColor();
+
+            Console.Write(" and smaller than ");
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(VAL_MAX_APPLES);
+            Console.ResetColor();
+
+            // Get the correct input
+            GetInputInBounds(out bytAmountOfApples, VAL_MIN_APPLES, VAL_MAX_APPLES);
         }
 
         /// <summary>
