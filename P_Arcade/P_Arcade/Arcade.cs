@@ -16,7 +16,8 @@ namespace P_Arcade
             {
                 // Initialize games
                 new Connect4(),
-                new SnakeGame()
+                new SnakeGame(),
+                new SlidingPuzzle(),
             };
 
             // Set up their scores and a GameNames table
@@ -56,7 +57,7 @@ namespace P_Arcade
         public static void ShowTitle(string title)
         {
             Console.Clear();
-            Console.ForegroundColor = ConsoleColor.White;
+            Console.ResetColor();
 
             string byLine = "By Néo Darbellay";
 
@@ -232,6 +233,25 @@ namespace P_Arcade
             using (StreamWriter writer = new StreamWriter(game.Name + "_highscores.xml", false))
             {
                 serializer.Serialize(writer, game.HighScores);
+            }
+        }
+
+        /// <summary>
+        /// Small fix for windows 11's terminal
+        /// </summary>
+        public static void Windows11TerminalFix()
+        {
+            if (Console.CursorTop == Console.BufferHeight)
+            {
+                Console.SetBufferSize(Console.BufferWidth, Console.BufferHeight + 3);
+            }
+            else if (Console.CursorTop == Console.BufferHeight - 1)
+            {
+                Console.SetBufferSize(Console.BufferWidth, Console.BufferHeight + 2);
+            }
+            else if (Console.CursorTop == Console.BufferHeight - 2)
+            {
+                Console.SetBufferSize(Console.BufferWidth, Console.BufferHeight + 1);
             }
         }
     }

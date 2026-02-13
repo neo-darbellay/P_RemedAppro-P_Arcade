@@ -56,25 +56,6 @@ namespace P_Arcade
         static byte bytCounter = 0;
 
         /// <summary>
-        /// Small fix for windows 11's terminal
-        /// </summary>
-        private void Windows11TerminalFix()
-        {
-            if (Console.CursorTop == Console.BufferHeight)
-            {
-                Console.SetBufferSize(Console.BufferWidth, Console.BufferHeight + 3);
-            }
-            else if (Console.CursorTop == Console.BufferHeight - 1)
-            {
-                Console.SetBufferSize(Console.BufferWidth, Console.BufferHeight + 2);
-            }
-            else if (Console.CursorTop == Console.BufferHeight - 2)
-            {
-                Console.SetBufferSize(Console.BufferWidth, Console.BufferHeight + 1);
-            }
-        }
-
-        /// <summary>
         /// Getting the user input
         /// </summary>
         private void GetUserInput()
@@ -582,8 +563,7 @@ namespace P_Arcade
                     Console.Write("\n   Your value isn't a number, please retry.\n\n");
                 }
 
-                Windows11TerminalFix();
-
+                Arcade.Windows11TerminalFix();
             }
             while (!blnVerification);
         }
