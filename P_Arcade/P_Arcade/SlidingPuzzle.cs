@@ -44,12 +44,14 @@ namespace P_Arcade
 
             bool blnWon = false;
 
+            // Clear the screen and add the title back
+            Arcade.ShowTitle(Name);
+
             // Start the game up
             Console.CursorVisible = false;
             do
             {
-                // Clear the screen and add the title back
-                Arcade.ShowTitle(Name);
+                Console.SetCursorPosition(0, 5);
                 DrawGrid(bytGrid);
 
                 // Check to see if the user pressed a valid key
