@@ -42,6 +42,8 @@ namespace P_Arcade
             // Generate the grid
             byte[,] bytGrid = CreateAndFillGrid();
 
+            bool blnWon = false;
+
             // Start the game up
             Console.CursorVisible = false;
             do
@@ -73,20 +75,48 @@ namespace P_Arcade
 
                     bool blnResult;
 
-                    (emptyTile, blnResult) = SwapTiles(bytGrid, emptyTile, bytRow, bytCol);
+                    blnResult = SwapTiles(bytGrid, bytRow, bytCol);
 
                     if (blnResult) intMoves++;
                 }
                 else if (keyPressed == ConsoleKey.Escape || keyPressed == ConsoleKey.R)
-                {
-
                     break;
-                }
-            } while (true);
 
-            Console.CursorVisible = true;
+                blnWon = CheckWin(bytGrid);
+            } while (!blnWon);
+
+            // If the user won, then show the victory message
+            if (blnWon)
+            {
+                // Clear the screen and add the title back
+                Arcade.ShowTitle(Name);
+                DrawGrid(bytGrid);
+
+                Console.WriteLine($"\n   You won a {bytLength} by {bytWidth} grid in {intMoves} moves!\n   Press any key to continue");
+                Console.ReadKey(true);
+            }
         }
 
+        /// <summary>
+        /// Check whether the user has won (if the grid is organized)
+        /// </summary>
+        /// <param name="bytGrid"></param>
+        /// <returns></returns>
+        private static bool CheckWin(byte[,] bytGrid)
+        {
+            byte bytExpectedNumber = 1;
+            int total = bytGrid.Length;
+
+            foreach (byte bytCurrentNumber in bytGrid)
+            {
+                if (bytExpectedNumber < total && bytCurrentNumber != bytExpectedNumber)
+                    return false;
+
+                bytExpectedNumber++;
+            }
+
+            return true;
+        }
         /// <summary>
         /// Swap two tiles (with one being empty)
         /// </summary>
@@ -95,7 +125,7 @@ namespace P_Arcade
         /// <param name="bytRow">How much to swap (X)</param>
         /// <param name="bytCol">How much to swap (Y)</param>
         /// <returns>The empty tile's position</returns>
-        private static ((byte row, byte col) emptyTile, bool blnResult) SwapTiles(byte[,] bytGrid, (byte row, byte col) emptyTile, sbyte bytRow, sbyte bytCol)
+        private static bool SwapTiles(byte[,] bytGrid, sbyte bytRow, sbyte bytCol)
         {
             bool blnResult = false;
 
@@ -117,7 +147,7 @@ namespace P_Arcade
                 blnResult = true;
             }
 
-            return (emptyTile, blnResult);
+            return blnResult;
         }
 
         /// <summary>
@@ -162,7 +192,7 @@ namespace P_Arcade
                     case 3: bytCol = 1; break;
                 }
 
-                (emptyTile, _) = SwapTiles(bytGrid, emptyTile, bytRow, bytCol);
+                _ = SwapTiles(bytGrid, bytRow, bytCol);
             }
 
             return bytGrid;

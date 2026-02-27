@@ -31,7 +31,7 @@ namespace P_Arcade
             }
 
             // Add one option, which is to exit the program
-            GameNames.Add("3. Exit");
+            GameNames.Add($"{GameNames.Count + 1}. Exit");
 
             // Show every available games and handle the user's choice
             do
