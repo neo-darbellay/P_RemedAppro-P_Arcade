@@ -4,5 +4,29 @@
   "branch": "main",
   "me": "neo-darbellay",
   "journalStartDate": null,
-  "exceptions": []
+  "exceptions": [
+    {
+      "id": "62f1c94a-f730-4316-8366-7a59bfe4824f",
+      "type": "commitless",
+      "name": "chore(Project): Thought about what to make for this project",
+      "description": "",
+      "date": "2026-01-16T07:00:00.000Z",
+      "duration": 73,
+      "status": "Done",
+      "author": "neo-darbellay"
+    },
+    {
+      "id": "2a6d2f98-755b-4ab1-bd71-29efa5a4a0dd",
+      "type": "commitpatch",
+      "sha": "4f520beafd389d53870fafaebf6ec4213c041aeb",
+      "url": "https://github.com/neo-darbellay/P_RemedAppro-P_Arcade/commit/4f520beafd389d53870fafaebf6ec4213c041aeb",
+      "name": "fix(Snake): Fixed snake spawning logic",
+      "description": "Now there is no error at all when spawning in the \"snake\" at the center of the map",
+      "date": "2026-02-06T07:15:00.000Z",
+      "duration": 15,
+      "status": "Done",
+      "author": "neo-darbellay",
+      "patch": true
+    }
+  ]
 }
