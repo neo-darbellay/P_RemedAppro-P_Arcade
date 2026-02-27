@@ -124,28 +124,50 @@ namespace P_Arcade
         {
             blnAteApple = false;
 
-            byte bytNewX = Head.Position.X;
-            byte bytNewY = Head.Position.Y;
+            int intNewX = Head.Position.X;
+            int intNewY = Head.Position.Y;
 
             switch (direction)
             {
-                case Direction.Up: bytNewY--; break;
-                case Direction.Down: bytNewY++; break;
-                case Direction.Left: bytNewX--; break;
-                case Direction.Right: bytNewX++; break;
+                case Direction.Up: intNewY--; break;
+                case Direction.Down: intNewY++; break;
+                case Direction.Left: intNewX--; break;
+                case Direction.Right: intNewX++; break;
             }
 
-            (byte X, byte Y) newPos = (bytNewX, bytNewY);
+            int intMaxGridX = SnakeGame.GameGrid.GetLength(1);
+            int intMaxGridY = SnakeGame.GameGrid.GetLength(0);
+
+            // Check for border collisions
+            bool blnBorderCollision = intNewX < 0 || intNewY < 0 || intNewX >= intMaxGridX || intNewY >= intMaxGridY;
+
+            if (blnBorderCollision)
+            {
+                if (SnakeGame.DoesBorderKill)
+                {
+                    return false;
+                }
+                else
+                {
+                    // Teleport the snake to the other side
+                    if (intNewX < 0) intNewX = (byte)(intMaxGridX - 1);
+                    else if (intNewX >= intMaxGridX) intNewX = 0;
+
+                    if (intNewY < 0) intNewY = (byte)(intMaxGridY - 1);
+                    else if (intNewY >= intMaxGridY) intNewY = 0;
+                }
+            }
+
+            (byte X, byte Y) newPos = ((byte)intNewX, (byte)intNewY);
 
             // If there is a self collision with the first body part (other than the head), move using the previous position
             if (_body.Count >= 2 && _body[1].Position == newPos)
                 return Move(previousDirection, out blnAteApple);
 
-            // Check for collisions (border and self collisions)
+            // Check for self collisions
             bool blnSelfCollision = _body.Any(p => p.Position.Equals(newPos));
-            bool blnBorderCollision = bytNewX < 0 || bytNewY < 0 || bytNewX >= SnakeGame.GameGrid.GetLength(1) || bytNewY >= SnakeGame.GameGrid.GetLength(0);
 
-            if (blnSelfCollision || blnBorderCollision)
+            if (blnSelfCollision)
             {
                 return false;
             }
@@ -207,7 +229,10 @@ namespace P_Arcade
         const byte FIRST_TILE_Y = 6;
 
         // How many apples need to be on screen at once
-        public static byte bytAmountOfApples;
+        public static byte TotalApples;
+
+        // Whether or not the borders kill you
+        public static bool DoesBorderKill;
 
         // The game's current speed
         public static byte bytGameSpeed;
@@ -296,7 +321,7 @@ namespace P_Arcade
             // Create the game grid
             GameGrid = new byte[bytLength, bytWidth];
 
-            for (int i = 0; i < bytAmountOfApples; i++)
+            for (int i = 0; i < TotalApples; i++)
             {
                 GenerateApple();
             }
@@ -436,7 +461,7 @@ namespace P_Arcade
             Console.ResetColor();
 
             // Get the correct input
-            GetInputInBounds(out bytAmountOfApples, VAL_MIN_APPLES, VAL_MAX_APPLES);
+            GetInputInBounds(out TotalApples, VAL_MIN_APPLES, VAL_MAX_APPLES);
 
 
             // Ask the user for the game's speed
@@ -454,6 +479,26 @@ namespace P_Arcade
 
             // Get the correct input
             GetInputInBounds(out bytGameSpeed, VAL_MIN_SPEED, VAL_MAX_SPEED);
+
+
+            // Ask the user whether or not they want the borders to kill the snake or not
+            Console.Write("\n   Should the grid borders kill the snake, or teleport it to the other side?\n   Write ");
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write(0);
+            Console.ResetColor();
+
+            Console.Write(" if it should kill, and ");
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write(1);
+            Console.ResetColor();
+
+            Console.WriteLine(" if it should teleport the snake to the other side");
+
+            GetInputInBounds(out byte bytBorderKills, 0, 1);
+
+            DoesBorderKill = bytBorderKills == 0;
         }
 
         /// <summary>
