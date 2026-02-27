@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace P_Arcade
 {
@@ -96,8 +99,6 @@ namespace P_Arcade
             GetInputInBounds(out bytColumn, VAL_MIN_COLUMNS, VAL_MAX_COLUMNS);
 
 
-            /* Bot related stuff, not useful right now
-
             // Ask the user if they want to play with two players
             bool blnVerification = false;
 
@@ -114,8 +115,8 @@ namespace P_Arcade
 
                 switch (char.ToUpper(chrAnswer))
                 {
-                    case 'o':
-                    case 'O':
+                    case 'y':
+                    case 'Y':
                         blnTwoPlayers = true;
                         blnVerification = true;
                         break;
@@ -130,8 +131,8 @@ namespace P_Arcade
                         break;
                 }
 
-                Windows11TerminalFix();
-                
+                Arcade.Windows11TerminalFix();
+
             }
 
             // Ask the user for the level of difficulty if they want to play against a bot
@@ -139,11 +140,11 @@ namespace P_Arcade
             {
                 Console.Write("\n   What level do you want the computer to be at?");
 
-                bool blnVerification = false;
+                blnVerification = false;
 
                 while (!blnVerification)
                 {
-                    Console.WriteLine("\nPlease enter a number between 1 and 10, where 1 is the easiest level, and 10 is the hardest");
+                    Console.WriteLine("\n   Please enter a number between 1 and 10, where 1 is the easiest level, and 10 is the hardest");
 
                     Console.Write("   Your input : ");
 
@@ -157,13 +158,25 @@ namespace P_Arcade
                         }
                     }
 
-                    Windows11TerminalFix();
+                    Arcade.Windows11TerminalFix();
                 }
-            }*/
+            }
         }
+
+
+        [DllImport("kernel32.dll")]
+        public static extern IntPtr GetConsoleWindow();
+
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
         public override void Start()
         {
+            // Full screen the app
+            IntPtr handle = GetConsoleWindow();
+            ShowWindow(handle, 3);
+
+
             GetUserInput();
 
             // Clear the screen and add the title back
@@ -478,7 +491,7 @@ namespace P_Arcade
                     {
                         // Increment the piece counter
                         bytCounter++;
-                        if (Check_Victory(GameGrid))
+                        if (Check_Victory(GameGrid, bytPlayer))
                         {
                             Console.SetCursorPosition(0, bytLastRow);
                             Console.Write("\n\n\n\n");
@@ -519,15 +532,52 @@ namespace P_Arcade
                         Console.Write("█");
                     }
                 }
-
                 // Bot's turn
+
                 else
                 {
-                    /*
+                    int chosenCol = GetBestMove(GameGrid);
 
-                        To be re-implemented
+                    for (int i = bytRow - 1; i >= 0; i--)
+                    {
+                        if (GameGrid[i, chosenCol] == 0)
+                        {
+                            GameGrid[i, chosenCol] = 2;
 
-                    */
+                            Console.ForegroundColor = ConsoleColor.Cyan;
+                            Console.SetCursorPosition(FIRST_TILE_X + chosenCol * 4, 10 + (i * 2));
+                            Console.Write("█");
+
+                            break;
+                        }
+                    }
+
+                    bytCounter++;
+
+                    if (Check_Victory(GameGrid, 2))
+                    {
+                        Console.SetCursorPosition(0, bytLastRow);
+                        Console.Write("\n\n\n\n");
+                        Console.ResetColor();
+
+                        Console.Write("   Computer won in " + bytCounter + " turns!\n");
+                        Console.WriteLine("   Press any key to continue.");
+                        Console.ReadKey(true);
+                        return;
+                    }
+
+                    if (Grid_Full(GameGrid))
+                    {
+                        Console.WriteLine("\n\n   It's a tie!");
+                        Console.ReadKey(true);
+                        return;
+                    }
+
+                    bytPlayer = 1;
+
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.SetCursorPosition(FIRST_TILE_X + bytCursorPosX * 4, FIRST_TILE_Y);
+                    Console.Write("█");
                 }
             }
         }
@@ -573,7 +623,7 @@ namespace P_Arcade
         /// </summary>
         /// <param name="GameGrid">The bidirectionnal array that stores all the pieces</param>
         /// <returns>Whether or not this player has won</returns>
-        private bool Check_Victory(byte[,] GameGrid)
+        private bool Check_Victory(byte[,] GameGrid, byte bytPlayer)
         {
             // Check to see if the current grid size allows a victory
             if (bytRow < 4 || bytColumn < 4)
@@ -688,6 +738,215 @@ namespace P_Arcade
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Clones the grid for the bot
+        /// </summary>
+        /// <param name="grid"></param>
+        /// <returns></returns>
+        private byte[,] CloneGrid(byte[,] grid)
+        {
+            byte[,] newGrid = new byte[bytRow, bytColumn];
+            Array.Copy(grid, newGrid, grid.Length);
+            return newGrid;
+        }
+
+        /// <summary>
+        /// Check for legal moves for the bot
+        /// </summary>
+        /// <param name="grid"></param>
+        /// <param name="col"></param>
+        /// <returns></returns>
+        private bool ColumnAvailable(byte[,] grid, int col)
+        {
+            return grid[0, col] == 0;
+        }
+
+        /// <summary>
+        /// Drop a piece for the bot
+        /// </summary>
+        /// <param name="grid"></param>
+        /// <param name="col"></param>
+        /// <param name="player"></param>
+        private void DropPiece(byte[,] grid, int col, byte player)
+        {
+            for (int row = bytRow - 1; row >= 0; row--)
+            {
+                if (grid[row, col] == 0)
+                {
+                    grid[row, col] = player;
+                    return;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Evaluate the best move
+        /// </summary>
+        /// <param name="grid"></param>
+        /// <returns></returns>
+        private int EvaluatePosition(byte[,] grid)
+        {
+            int score = 0;
+
+            // Helper to evaluate 4-cell windows
+            int EvalWindow(byte[] window)
+            {
+                int botPieces = window.Count(x => x == 2);
+                int playerPieces = window.Count(x => x == 1);
+                int empty = window.Count(x => x == 0);
+
+                if (botPieces == 4) return 10000;
+                if (botPieces == 3 && empty == 1) return 50;
+                if (botPieces == 2 && empty == 2) return 10;
+
+                // block player, aggressively
+                if (playerPieces == 3 && empty == 1) return -80;
+
+                return 0;
+            }
+
+            // Horizontal
+            for (int r = 0; r < bytRow; r++)
+            {
+                for (int c = 0; c < bytColumn - 3; c++)
+                {
+                    byte[] window = { grid[r, c], grid[r, c + 1], grid[r, c + 2], grid[r, c + 3] };
+                    score += EvalWindow(window);
+                }
+            }
+
+            // Vertical
+            for (int c = 0; c < bytColumn; c++)
+            {
+                for (int r = 0; r < bytRow - 3; r++)
+                {
+                    byte[] window = { grid[r, c], grid[r + 1, c], grid[r + 2, c], grid[r + 3, c] };
+                    score += EvalWindow(window);
+                }
+            }
+
+            // Diagonal \
+            for (int r = 0; r < bytRow - 3; r++)
+            {
+                for (int c = 0; c < bytColumn - 3; c++)
+                {
+                    byte[] window = { grid[r, c], grid[r + 1, c + 1], grid[r + 2, c + 2], grid[r + 3, c + 3] };
+                    score += EvalWindow(window);
+                }
+            }
+
+            // Diagonal /
+            for (int r = 0; r < bytRow - 3; r++)
+            {
+                for (int c = 3; c < bytColumn; c++)
+                {
+                    byte[] window = { grid[r, c], grid[r + 1, c - 1], grid[r + 2, c - 2], grid[r + 3, c - 3] };
+                    score += EvalWindow(window);
+                }
+            }
+
+            return score;
+        }
+
+
+
+        private int MinMax(byte[,] grid, int depth, int alpha, int beta, bool maximizing)
+        {
+            byte bytMaxMoves = 7;
+
+            // Base cases
+
+            if (depth == 0 ||
+                Check_Victory(grid, 1) ||
+                Check_Victory(grid, 2) ||
+                Grid_Full(grid))
+            {
+                return EvaluatePosition(grid);
+            }
+
+
+            if (maximizing)
+            {
+                int maxEval = int.MinValue;
+
+
+                List<int> moves = Enumerable.Range(0, bytColumn)
+                                             .Where(c => ColumnAvailable(grid, c))
+                                             .OrderBy(c => Math.Abs(c - bytColumn / 2))
+                                             .Take(bytMaxMoves)
+                                             .ToList();
+
+
+                foreach (int col in moves)
+                {
+                    if (ColumnAvailable(grid, col))
+                    {
+                        var clone = CloneGrid(grid);
+                        DropPiece(clone, col, 2); // bot plays as player 2
+                        int eval = MinMax(clone, depth - 1, alpha, beta, false);
+                        maxEval = Math.Max(maxEval, eval);
+                        alpha = Math.Max(alpha, eval);
+                        if (beta <= alpha) break;
+                    }
+                }
+                return maxEval;
+            }
+            else
+            {
+                int minEval = int.MaxValue;
+
+                for (int col = 0; col < bytColumn; col++)
+                {
+                    if (ColumnAvailable(grid, col))
+                    {
+                        var clone = CloneGrid(grid);
+                        DropPiece(clone, col, 1); // human
+                        int eval = MinMax(clone, depth - 1, alpha, beta, true);
+                        minEval = Math.Min(minEval, eval);
+                        beta = Math.Min(beta, eval);
+                        if (beta <= alpha) break;
+                    }
+                }
+                return minEval;
+            }
+        }
+
+        /// <summary>
+        /// Get the best move possible
+        /// </summary>
+        /// <param name="grid"></param>
+        /// <returns></returns>
+        private int GetBestMove(byte[,] grid)
+        {
+            int bestScore = int.MinValue;
+            int bestMove = 0;
+
+            int depth =
+                bytColumn > 8 ? 3 :
+                bytBotSmartness <= 3 ? 2 :
+                bytBotSmartness <= 6 ? 4 :
+                                       6;
+
+            for (int col = 0; col < bytColumn; col++)
+            {
+                if (ColumnAvailable(grid, col))
+                {
+                    var clone = CloneGrid(grid);
+                    DropPiece(clone, col, 2);
+
+                    int score = MinMax(clone, depth, int.MinValue, int.MaxValue, false);
+
+                    if (score > bestScore)
+                    {
+                        bestScore = score;
+                        bestMove = col;
+                    }
+                }
+            }
+
+            return bestMove;
         }
     }
 }
