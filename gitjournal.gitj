@@ -27,6 +27,16 @@
       "status": "Done",
       "author": "neo-darbellay",
       "patch": true
+    },
+    {
+      "id": "8c125ee3-001d-49e5-b9ca-fca868cd51b4",
+      "type": "commitless",
+      "name": "chore(Project): Testing the app, and adding the source code to Teams",
+      "description": "",
+      "date": "2026-03-13T07:10:00.000Z",
+      "duration": 10,
+      "status": "Done",
+      "author": "neo-darbellay"
     }
   ]
 }
