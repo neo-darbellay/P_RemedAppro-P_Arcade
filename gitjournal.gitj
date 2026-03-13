@@ -37,6 +37,26 @@
       "duration": 10,
       "status": "Done",
       "author": "neo-darbellay"
+    },
+    {
+      "id": "ec3da85a-f82c-40f8-beda-4b780c06c121",
+      "type": "commitless",
+      "name": " chore(Others): Took some time to update the doc of another project",
+      "description": "Since I'm already done with the project, I figured that I could do that",
+      "date": "2026-03-13T08:11:00.000Z",
+      "duration": 43,
+      "status": "Done",
+      "author": "neo-darbellay"
+    },
+    {
+      "id": "25fbe94b-4249-4048-9edb-e139f51e4bd2",
+      "type": "commitless",
+      "name": "chore(Others): Changed the structure of a project",
+      "description": "",
+      "date": "2026-03-13T09:04:00.000Z",
+      "duration": 38,
+      "status": "Done",
+      "author": "neo-darbellay"
     }
   ]
 }
