@@ -66,10 +66,7 @@ namespace P_Arcade
                     if (SendPiece(bytGrid))
                     {
                         blnCurrentPlayer = !blnCurrentPlayer;
-
-                        // Redraw everything so the "Player X's turn" text updates
-                        Arcade.ShowTitle(Name);
-                        DrawGrid(bytGrid);
+                        DrawTurnText();
                     }
                 }
                 else if (keyPressed == ConsoleKey.Escape || keyPressed == ConsoleKey.R)
@@ -79,25 +76,20 @@ namespace P_Arcade
                 blnFull = FullGrid(bytGrid);
             } while (!blnWon && !blnFull);
 
+            // Place the cursor at the right spot
+            Console.SetCursorPosition(0, 13);
+
             // If the user won, then show the victory message
             if (blnWon)
             {
-                // Clear the screen and add the title back
-                Arcade.ShowTitle(Name);
-                DrawGrid(bytGrid);
-
-                Console.WriteLine($"\n   Player {bytWinner} won!");
+                Console.Write($"\n   Player {bytWinner} won! Press any key to restart.");
                 Console.ReadKey(true);
             }
 
             // If the grid is full and the player hasn't won, show the draw message
             if (!blnWon && blnFull)
             {
-                // Clear the screen and add the title back
-                Arcade.ShowTitle(Name);
-                DrawGrid(bytGrid);
-
-                Console.WriteLine($"\n   It's a draw!");
+                Console.Write($"\n   It's a draw! Press any key to restart.");
                 Console.ReadKey(true);
             }
         }
@@ -119,8 +111,23 @@ namespace P_Arcade
             byte bytPrevCel = bytGrid[bytPrevRow, bytPrevCol];
 
             Console.SetCursorPosition(bytPrevConsoleCol, bytPrevConsoleRow);
+
+            if (bytPrevCel == 1)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write('X');
+            }
+            else if (bytPrevCel == 2)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write('O');
+            }
+            else
+            {
+                Console.Write(' ');
+            }
+
             Console.ResetColor();
-            Console.Write(bytPrevCel == 0 ? ' ' : bytPrevCel == 1 ? 'X' : 'O');
 
             byte bytConsoleRow = (byte)(6 + (bytRow * 2));
             byte bytConsoleCol = (byte)(4 + (bytCol * 4) + 1);
@@ -147,10 +154,33 @@ namespace P_Arcade
             if (bytGrid[bytRow, bytCol] == 0)
             {
                 bytGrid[bytRow, bytCol] = (byte)(blnCurrentPlayer ? 1 : 2);
+
+                byte consoleRow = (byte)(6 + (bytRow * 2));
+                byte consoleCol = (byte)(4 + (bytCol * 4) + 1);
+
+                Console.SetCursorPosition(consoleCol, consoleRow);
+                Console.ForegroundColor = blnCurrentPlayer ? ConsoleColor.Red : ConsoleColor.Yellow;
+                Console.Write(blnCurrentPlayer ? 'X' : 'O');
+
+                Console.ResetColor();
+
                 return true;
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Draw the Player's turn text
+        /// </summary>
+        private static void DrawTurnText()
+        {
+            Console.SetCursorPosition(24, 6);
+            Console.Write("Player ");
+            Console.ForegroundColor = blnCurrentPlayer ? ConsoleColor.Red : ConsoleColor.Yellow;
+            Console.Write(blnCurrentPlayer ? 1 : 2);
+            Console.ResetColor();
+            Console.Write("'s turn");
         }
 
         /// <summary>
